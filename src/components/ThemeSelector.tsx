@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Box, Tooltip } from '@mui/material';
 import { THEMES, ThemeName } from '../themes';
 
-const DEFAULT_THEME: ThemeName = 'mint';
+const DEFAULT_THEME: ThemeName = 'midnight';
 
 const ThemeSelector = () => {
 	const [selected, setSelected] = useState<ThemeName>(
@@ -32,6 +32,11 @@ const ThemeSelector = () => {
 				display: 'flex',
 				gap: 1,
 				alignItems: 'center',
+				background: 'rgba(0,0,0,0.15)',
+				backdropFilter: 'blur(8px)',
+				WebkitBackdropFilter: 'blur(8px)',
+				borderRadius: '20px',
+				padding: '6px 10px',
 			}}
 		>
 			{(Object.entries(THEMES) as [ThemeName, typeof THEMES[ThemeName]][]).map(

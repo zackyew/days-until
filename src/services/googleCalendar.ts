@@ -4,9 +4,20 @@ export interface CalendarEventItem {
 		dateTime?: string;
 		date?: string;
 	};
+	end: {
+		dateTime?: string;
+		date?: string;
+	};
+	location?: string;
+	hangoutLink?: string;
 }
 
 export function getAuthToken(interactive: boolean): Promise<string> {
+	if (!chrome.identity) {
+		return Promise.reject(
+			new Error('chrome.identity unavailable — reload the extension in chrome://extensions')
+		);
+	}
 	return chrome.identity.getAuthToken({ interactive }).then((result) => {
 		if (!result.token) {
 			throw new Error('Failed to get auth token');

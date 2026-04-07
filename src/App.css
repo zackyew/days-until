@@ -1,46 +1,55 @@
-.background_mint {
-	background: linear-gradient(55deg, #adf2e0, #9fa0e8, #f3d088);
+.background_midnight {
+	background: linear-gradient(135deg, #060d10, #0d1e24, #142534);
 	background-size: 600% 600%;
 
-	-webkit-animation: AnimationName 0s ease infinite;
-	-moz-animation: AnimationName 0s ease infinite;
-	animation: AnimationName 0s ease infinite;
+	-webkit-animation: AnimationName 12s ease infinite;
+	-moz-animation: AnimationName 12s ease infinite;
+	animation: AnimationName 12s ease infinite;
 }
 
-.background_midnight {
-	background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+.background_ocean {
+	background: linear-gradient(135deg, #0a1628, #1a6b7a, #0d3b56);
 	background-size: 600% 600%;
 
-	-webkit-animation: AnimationName 0s ease infinite;
-	-moz-animation: AnimationName 0s ease infinite;
-	animation: AnimationName 0s ease infinite;
+	-webkit-animation: AnimationName 12s ease infinite;
+	-moz-animation: AnimationName 12s ease infinite;
+	animation: AnimationName 12s ease infinite;
+}
+
+.background_forest {
+	background: linear-gradient(135deg, #0d2416, #2d6a4f, #162b1e);
+	background-size: 600% 600%;
+
+	-webkit-animation: AnimationName 12s ease infinite;
+	-moz-animation: AnimationName 12s ease infinite;
+	animation: AnimationName 12s ease infinite;
+}
+
+.background_ember {
+	background: linear-gradient(135deg, #1a0000, #8b2500, #4a1505);
+	background-size: 600% 600%;
+
+	-webkit-animation: AnimationName 12s ease infinite;
+	-moz-animation: AnimationName 12s ease infinite;
+	animation: AnimationName 12s ease infinite;
 }
 
 .background_sunset {
 	background: linear-gradient(135deg, #f5a623, #f53d7f, #9b59b6);
 	background-size: 600% 600%;
 
-	-webkit-animation: AnimationName 0s ease infinite;
-	-moz-animation: AnimationName 0s ease infinite;
-	animation: AnimationName 0s ease infinite;
+	-webkit-animation: AnimationName 12s ease infinite;
+	-moz-animation: AnimationName 12s ease infinite;
+	animation: AnimationName 12s ease infinite;
 }
 
 .background_aurora {
 	background: linear-gradient(135deg, #43b89c, #2d4e8a, #9b59b6);
 	background-size: 600% 600%;
 
-	-webkit-animation: AnimationName 0s ease infinite;
-	-moz-animation: AnimationName 0s ease infinite;
-	animation: AnimationName 0s ease infinite;
-}
-
-.background_rose {
-	background: linear-gradient(135deg, #f093fb, #f5576c, #c471ed);
-	background-size: 600% 600%;
-
-	-webkit-animation: AnimationName 0s ease infinite;
-	-moz-animation: AnimationName 0s ease infinite;
-	animation: AnimationName 0s ease infinite;
+	-webkit-animation: AnimationName 12s ease infinite;
+	-moz-animation: AnimationName 12s ease infinite;
+	animation: AnimationName 12s ease infinite;
 }
 
 @-webkit-keyframes AnimationName {

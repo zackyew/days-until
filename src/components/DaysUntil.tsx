@@ -75,10 +75,21 @@ const DaysUntil = () => {
 			flexDirection='column'
 			gap={2}
 		>
-			<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.5 }}>
+			<Typography
+				variant='h1'
+				fontWeight={400}
+				sx={{
+					opacity: 0.85,
+					letterSpacing: '0.01em',
+				}}
+			>
 				{eventName}
 			</Typography>
-			<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.5 }}>
+			<Typography
+				variant='h2'
+				fontWeight={400}
+				sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums' }}
+			>
 				{timeLeft}
 			</Typography>
 			<Button variant='outlined' onClick={handleClear} sx={{ marginTop: 4 }}>

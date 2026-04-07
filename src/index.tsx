@@ -1,5 +1,9 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import '@fontsource/dm-sans/400.css';
+import '@fontsource/dm-sans/500.css';
+import '@fontsource/petrona/400.css';
+import '@fontsource/petrona/600.css';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
