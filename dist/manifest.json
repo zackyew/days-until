@@ -11,7 +11,7 @@
 	},
 	"permissions": ["storage", "identity"],
 	"oauth2": {
-		"client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
+		"client_id": "457255059655-gppp0de1nhcennnf0pjo05br39k2mfac.apps.googleusercontent.com",
 		"scopes": ["https://www.googleapis.com/auth/calendar.readonly"]
 	}
 }
