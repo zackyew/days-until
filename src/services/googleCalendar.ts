@@ -47,9 +47,10 @@ export async function fetchNextEvent(): Promise<CalendarEventItem | null> {
 export async function disconnectCalendar(): Promise<void> {
 	try {
 		const token = await getAuthToken(false);
+		await fetch(`https://oauth2.googleapis.com/revoke?token=${token}`, { method: 'POST' });
 		await chrome.identity.removeCachedAuthToken({ token });
 	} catch {
-		// Token may already be missing — that's fine
+		// Token may already be missing or revocation may fail — that's fine
 	}
 	await chrome.storage.sync.remove('calendarConnected');
 }
