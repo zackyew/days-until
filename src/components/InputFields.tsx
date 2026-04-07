@@ -10,7 +10,11 @@ import {
 } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
-function InputFields() {
+interface Props {
+	onCountdownToCalendar?: () => void;
+}
+
+function InputFields({ onCountdownToCalendar }: Props) {
 	const [name, setName] = useState('');
 	const [date, setDate] = useState<Dayjs | null>(dayjs().add(1, 'd').minute(0).second(0));
 	const [error, setError] = useState<DateTimeValidationError | null>(null);
@@ -23,24 +27,15 @@ function InputFields() {
 
 	const errorMessage = useMemo(() => {
 		switch (error) {
-			case 'invalidDate': {
+			case 'invalidDate':
 				return 'Please enter a valid date';
-			}
-
-			default: {
+			default:
 				return '';
-			}
 		}
 	}, [error]);
 
 	return (
-		<Box
-			display='flex'
-			justifyContent='center'
-			alignItems='center'
-			flexDirection='column'
-			gap={4}
-		>
+		<Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' gap={4}>
 			<AvTimerIcon sx={{ fontSize: 75 }} />
 			<Typography variant='h4'>
 				What are you looking forward to next?
@@ -57,10 +52,9 @@ function InputFields() {
 				<DateTimePicker
 					value={date}
 					onChange={(newValue) => {
-            if (newValue !== null) {
-              newValue = newValue.second(0)
-            }
-            
+						if (newValue !== null) {
+							newValue = newValue.second(0);
+						}
 						setDate(newValue);
 					}}
 					disablePast
@@ -79,6 +73,11 @@ function InputFields() {
 			>
 				Save
 			</Button>
+			{onCountdownToCalendar && (
+				<Button variant='outlined' onClick={onCountdownToCalendar}>
+					Countdown to next calendar event
+				</Button>
+			)}
 		</Box>
 	);
 }

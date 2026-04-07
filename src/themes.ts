@@ -27,20 +27,6 @@ export const THEMES = {
 		mode: 'dark' as const,
 		cardBg: 'rgba(255,255,255,0.09)',
 	},
-	sunset: {
-		gradient: 'linear-gradient(135deg, #f5a623, #f53d7f, #9b59b6)',
-		label: 'Sunset',
-		swatch: '#f5a623',
-		mode: 'dark' as const,
-		cardBg: 'rgba(255,255,255,0.12)',
-	},
-	aurora: {
-		gradient: 'linear-gradient(135deg, #43b89c, #2d4e8a, #9b59b6)',
-		label: 'Aurora',
-		swatch: '#43b89c',
-		mode: 'dark' as const,
-		cardBg: 'rgba(255,255,255,0.10)',
-	},
 } as const;
 
 export type ThemeName = keyof typeof THEMES;

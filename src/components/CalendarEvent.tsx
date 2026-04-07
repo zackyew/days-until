@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Box, Button, CircularProgress, Link, Typography } from '@mui/material';
+import { Box, Button, CircularProgress, IconButton, Link, Typography } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import dayjs from 'dayjs';
 import {
@@ -8,6 +8,7 @@ import {
 	fetchNextEvent,
 	getAuthToken,
 } from '../services/googleCalendar';
+import { formatTimeUntil } from '../utils/time';
 
 type Status = 'disconnected' | 'loading' | 'connected' | 'error';
 
@@ -32,44 +33,22 @@ function isUrl(str: string): boolean {
 	}
 }
 
-function formatEventDateTime(start: CalendarEventItem['start']): string {
+function formatEventDateTime(start: CalendarEventItem['start'], end: CalendarEventItem['end']): string {
 	if (start.dateTime) {
-		return dayjs(start.dateTime).format('ddd, MMM D · h:mm A');
+		const startStr = dayjs(start.dateTime).format('ddd, MMM D · h:mm A');
+		const endStr = end.dateTime ? dayjs(end.dateTime).format('h:mm A') : null;
+		return endStr ? `${startStr} – ${endStr}` : startStr;
 	}
-	if (start.date) {
-		return dayjs(start.date).format('ddd, MMM D');
-	}
+	if (start.date) return dayjs(start.date).format('ddd, MMM D');
 	return '';
 }
 
-function formatTimeUntil(isoDate: string): string {
-	const days = dayjs(isoDate).diff(dayjs(), 'days');
-	let hours = dayjs(isoDate).diff(dayjs(), 'hours');
-	hours = hours - days * 24;
-	let minutes = dayjs(isoDate).diff(dayjs(), 'minutes', true);
-	minutes =
-		hours === 0
-			? Math.floor(minutes - days * 24 * 60)
-			: Math.floor(minutes - hours * 60);
-
-	if (dayjs(isoDate).diff(dayjs()) < 0) return 'now';
-
-	let result = 'in ';
-	if (days > 0) result += `${days} day${days === 1 ? '' : 's'} and `;
-	if (hours > 0) {
-		result += `${hours} hour${hours === 1 ? '' : 's'}`;
-		if (days === 0 && minutes > 0) result += ' and ';
-	}
-	if (minutes > 0) {
-		if (hours === 0 || days === 0)
-			result += `${minutes} minute${minutes === 1 ? '' : 's'}`;
-	} else if (hours === 0 && days === 0) {
-		result += '0 minutes';
-	}
-	return result;
+interface Props {
+	isFullscreen?: boolean;
+	onClear?: () => void;
 }
 
-const CalendarEvent = () => {
+const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 	const [status, setStatus] = useState<Status>('loading');
 	const [event, setEvent] = useState<CalendarEventItem | null>(null);
 	const [noEvents, setNoEvents] = useState(false);
@@ -88,7 +67,6 @@ const CalendarEvent = () => {
 		}
 	}, []);
 
-	// Check initial connection state
 	useEffect(() => {
 		chrome.storage.sync.get('calendarConnected', (result) => {
 			if (result.calendarConnected) {
@@ -99,7 +77,6 @@ const CalendarEvent = () => {
 		});
 	}, [loadEvent]);
 
-	// Refresh on interval
 	useEffect(() => {
 		if (status !== 'connected') return;
 		const interval = setInterval(loadEvent, REFRESH_INTERVAL_MS);
@@ -127,14 +104,15 @@ const CalendarEvent = () => {
 	}, []);
 
 	const eventStart = event?.start.dateTime ?? event?.start.date;
+	const callUrl = event?.hangoutLink ?? (event?.location && isUrl(event.location) ? event.location : null);
 
 	return (
 		<Box
 			display='flex'
 			flexDirection='column'
 			alignItems='center'
-			gap={0.5}
-			sx={{ opacity: 0.75 }}
+			gap={isFullscreen ? 2 : 0.5}
+			sx={{ opacity: isFullscreen ? 1 : 0.75 }}
 		>
 			{status === 'loading' && <CircularProgress size={16} />}
 
@@ -150,41 +128,52 @@ const CalendarEvent = () => {
 
 			{status === 'connected' && event && eventStart && (
 				<>
-					<Typography variant='h5' fontWeight={500}>
-						{event.summary}
+					<Box display='flex' alignItems='center' gap={0.5}>
+						<Typography variant={isFullscreen ? 'h1' : 'h5'} fontWeight={isFullscreen ? 400 : 500} sx={isFullscreen ? { opacity: 0.85, letterSpacing: '0.01em' } : {}}>
+							{event.summary}
+						</Typography>
+						{callUrl && (
+							<IconButton
+								component='a'
+								href={callUrl}
+								target='_blank'
+								rel='noopener noreferrer'
+								sx={isFullscreen ? { padding: '6px' } : { padding: '4px' }}
+							>
+								<OpenInNewIcon sx={{ fontSize: isFullscreen ? '2rem' : '1.1rem' }} />
+							</IconButton>
+						)}
+					</Box>
+
+					{isFullscreen ? (
+						<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums' }}>
+							{formatTimeUntil(eventStart)}
+						</Typography>
+					) : (
+						<Typography variant='body1' sx={{ opacity: 0.75 }}>
+							{formatTimeUntil(eventStart)}
+						</Typography>
+					)}
+
+					<Typography variant={isFullscreen ? 'body1' : 'h6'} fontWeight={400} sx={{ opacity: isFullscreen ? 0.55 : 1 }}>
+						{formatEventDateTime(event.start, event.end)}
 					</Typography>
-					<Typography variant='h6' fontWeight={400}>
-						{formatEventDateTime(event.start)}
-					</Typography>
-					<Typography variant='body1' sx={{ opacity: 0.75 }}>
-						{formatTimeUntil(eventStart)}
-					</Typography>
+
 					{event.location && !isUrl(event.location) && (
 						<Typography variant='body1' sx={{ opacity: 0.75 }}>
 							{event.location}
 						</Typography>
 					)}
-					{(event.hangoutLink ?? (event.location && isUrl(event.location) ? event.location : null)) && (
-						<Button
-							variant='outlined'
-							size='small'
-							endIcon={<OpenInNewIcon fontSize='small' />}
-							href={event.hangoutLink ?? event.location!}
-							target='_blank'
-							rel='noopener noreferrer'
-							sx={{ mt: 0.5 }}
-						>
-							Join call
+
+					{isFullscreen ? (
+						<Button variant='outlined' onClick={onClear} sx={{ mt: 2 }}>
+							Clear
 						</Button>
+					) : (
+						<Link component='button' variant='body2' onClick={handleDisconnect} sx={{ mt: 0.5, cursor: 'pointer', opacity: 0.75 }}>
+							Disconnect calendar
+						</Link>
 					)}
-					<Link
-						component='button'
-						variant='body2'
-						onClick={handleDisconnect}
-						sx={{ mt: 0.5, cursor: 'pointer', opacity: 0.75 }}
-					>
-						Disconnect calendar
-					</Link>
 				</>
 			)}
 
@@ -192,12 +181,7 @@ const CalendarEvent = () => {
 				<Box display='flex' flexDirection='column' alignItems='center' gap={0.5}>
 					<Box display='flex' alignItems='center' gap={1}>
 						<Typography variant='body1'>Could not load calendar</Typography>
-						<Link
-							component='button'
-							variant='body2'
-							onClick={loadEvent}
-							sx={{ cursor: 'pointer' }}
-						>
+						<Link component='button' variant='body2' onClick={loadEvent} sx={{ cursor: 'pointer' }}>
 							Retry
 						</Link>
 					</Box>

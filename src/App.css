@@ -34,24 +34,6 @@
 	animation: AnimationName 12s ease infinite;
 }
 
-.background_sunset {
-	background: linear-gradient(135deg, #f5a623, #f53d7f, #9b59b6);
-	background-size: 600% 600%;
-
-	-webkit-animation: AnimationName 12s ease infinite;
-	-moz-animation: AnimationName 12s ease infinite;
-	animation: AnimationName 12s ease infinite;
-}
-
-.background_aurora {
-	background: linear-gradient(135deg, #43b89c, #2d4e8a, #9b59b6);
-	background-size: 600% 600%;
-
-	-webkit-animation: AnimationName 12s ease infinite;
-	-moz-animation: AnimationName 12s ease infinite;
-	animation: AnimationName 12s ease infinite;
-}
-
 @-webkit-keyframes AnimationName {
 	0% {
 		background-position: 15% 0%;

@@ -2,7 +2,7 @@
 	"version": "1.0.0",
 	"manifest_version": 3,
 	"name": "Days Until",
-	"description": "This is a chrome extension that displays a countdown to a certain date on a new tab",
+	"description": "A Chrome extension that displays a countdown to a certain date on a new tab. Also connects to Google Calendar to show the next upcoming event.",
 	"action": {
 		"default_title": "Days Until"
 	},

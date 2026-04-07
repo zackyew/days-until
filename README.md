@@ -1,9 +1,6 @@
 # days-until
 A countdown chrome extension that opens on a new tab.
 
-<img width="1512" alt="Screenshot 2024-11-28 at 1 52 51 PM" src="https://github.com/user-attachments/assets/ea7b9226-16bb-41c0-ad5c-6fc2ffe9b893">
-<img width="1512" alt="Screenshot 2024-11-28 at 1 55 12 PM" src="https://github.com/user-attachments/assets/74d97e9a-97c8-47f9-8d2e-639dc9d55285">
-
 ## Available Scripts
 
 In the project directory, you can run:

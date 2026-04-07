@@ -1,11 +1,14 @@
 import { Box, Button, Typography } from '@mui/material';
+import confetti from 'canvas-confetti';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
+import { formatTimeUntil } from '../utils/time';
 
 const DaysUntil = () => {
 	const [eventName, setEventName] = useState<string | null>('');
 	const [targetDate, setTargetDate] = useState<string | null>();
 	const [timeLeft, setTimeLeft] = useState('');
+	const [isCelebration, setIsCelebration] = useState(false);
 
 	useEffect(() => {
 		setEventName(window.localStorage.getItem('event-name'));
@@ -13,86 +16,59 @@ const DaysUntil = () => {
 	}, []);
 
 	const calculateTimeLeft = useCallback(() => {
-		const days = dayjs(targetDate).diff(dayjs(), 'days');
-		let hours = dayjs(targetDate).diff(dayjs(), 'hours');
-		hours = hours - days * 24;
-		let minutes = dayjs(targetDate).diff(dayjs(), 'minutes', true);
-		minutes =
-			hours === 0
-				? Math.floor(minutes - days * 24 * 60)
-				: Math.floor(minutes - hours * 60);
+		const msLeft = dayjs(targetDate).diff(dayjs());
+		const isToday = dayjs(targetDate).isSame(dayjs(), 'day');
+		setIsCelebration(isToday && msLeft <= 60 * 60 * 1000);
 
-		// Event is in the past
-		if (dayjs(targetDate).diff(dayjs()) < 0) {
-			return 'This event has passed';
-		}
+		if (msLeft < 0 && !isToday) return 'This event has passed';
+		if (isToday && msLeft <= 0) return '';
 
-		let timeString = 'in ';
-		if (days > 0) {
-			timeString += `${days} day${days === 1 ? '' : 's'} and `;
-		}
-
-		if (hours > 0) {
-			timeString += `${hours} hour${hours === 1 ? '' : 's'}`;
-			if (days === 0 && minutes > 0) {
-				timeString += ' and ';
-			}
-		}
-
-		if (minutes > 0) {
-			if (hours === 0) {
-				timeString += `${minutes} minute${minutes === 1 ? '' : 's'}`;
-			} else if (days === 0)
-				timeString += `${minutes} minute${minutes === 1 ? '' : 's'}`;
-		} else {
-			timeString += `0 minutes`;
-		}
-
-		return timeString;
+		return formatTimeUntil(targetDate!);
 	}, [targetDate]);
 
 	useEffect(() => {
 		setTimeLeft(calculateTimeLeft());
-
-		const interval = setInterval(() => {
-			setTimeLeft(calculateTimeLeft());
-		}, 10000);
-
+		const interval = setInterval(() => setTimeLeft(calculateTimeLeft()), 10000);
 		return () => clearInterval(interval);
 	}, [calculateTimeLeft]);
+
+	useEffect(() => {
+		if (!isCelebration || !targetDate) return;
+		const firedFor = window.localStorage.getItem('confetti-fired-for');
+		if (firedFor === targetDate) return;
+		window.localStorage.setItem('confetti-fired-for', targetDate);
+		confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+	}, [isCelebration, targetDate]);
 
 	const handleClear = useCallback(() => {
 		window.localStorage.removeItem('event-name');
 		window.localStorage.removeItem('target-date');
+		window.localStorage.removeItem('confetti-fired-for');
 		window.dispatchEvent(new Event('days-until'));
 	}, []);
 
 	return (
-		<Box
-			display='flex'
-			justifyContent='center'
-			alignItems='center'
-			flexDirection='column'
-			gap={2}
-		>
-			<Typography
-				variant='h1'
-				fontWeight={400}
-				sx={{
-					opacity: 0.85,
-					letterSpacing: '0.01em',
-				}}
-			>
-				{eventName}
-			</Typography>
-			<Typography
-				variant='h2'
-				fontWeight={400}
-				sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums' }}
-			>
-				{timeLeft}
-			</Typography>
-			<Button variant='outlined' onClick={handleClear} sx={{ marginTop: 4 }}>
+		<Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' gap={2}>
+			{isCelebration ? (
+				<>
+					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85 }}>
+						Today's the day!
+					</Typography>
+					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em' }}>
+						{eventName}
+					</Typography>
+				</>
+			) : (
+				<>
+					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em' }}>
+						{eventName}
+					</Typography>
+					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums' }}>
+						{timeLeft}
+					</Typography>
+				</>
+			)}
+			<Button variant='outlined' onClick={handleClear} sx={{ marginTop: 2 }}>
 				Clear
 			</Button>
 		</Box>

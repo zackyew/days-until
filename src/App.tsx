@@ -5,6 +5,7 @@ import './App.css';
 import DaysUntil from './components/DaysUntil';
 import ThemeSelector from './components/ThemeSelector';
 import CalendarEvent from './components/CalendarEvent';
+import Clock from './components/Clock';
 import { THEMES, ThemeName } from './themes';
 
 function App() {
@@ -13,6 +14,9 @@ function App() {
 	);
 	const [themeName, setThemeName] = useState<ThemeName>(
 		() => (window.localStorage.getItem('theme') as ThemeName) ?? 'midnight'
+	);
+	const [calendarCountdown, setCalendarCountdown] = useState<boolean>(
+		() => window.localStorage.getItem('calendar-countdown') === 'true'
 	);
 
 	const muiTheme = useMemo(
@@ -26,6 +30,7 @@ function App() {
 	const handleLocalStorageCheck = useCallback(() => {
 		setDateExists(window.localStorage.getItem('target-date') !== null);
 		setThemeName((window.localStorage.getItem('theme') as ThemeName) ?? 'midnight');
+		setCalendarCountdown(window.localStorage.getItem('calendar-countdown') === 'true');
 	}, []);
 
 	useEffect(() => {
@@ -35,6 +40,16 @@ function App() {
 		};
 	}, [handleLocalStorageCheck]);
 
+	const handleCalendarCountdown = useCallback(() => {
+		window.localStorage.setItem('calendar-countdown', 'true');
+		window.dispatchEvent(new Event('days-until'));
+	}, []);
+
+	const handleCalendarClear = useCallback(() => {
+		window.localStorage.removeItem('calendar-countdown');
+		window.dispatchEvent(new Event('days-until'));
+	}, []);
+
 	return (
 		<ThemeProvider theme={muiTheme}>
 			<CssBaseline />
@@ -42,11 +57,14 @@ function App() {
 				height='100vh'
 				width='100vw'
 				display='flex'
+				flexDirection='column'
 				justifyContent='center'
 				alignItems='center'
+				gap={3}
 				className={`background_${themeName}`}
 			>
 				<ThemeSelector />
+				<Clock />
 				<Box
 					display='flex'
 					flexDirection='column'
@@ -61,9 +79,15 @@ function App() {
 						padding: '48px 64px',
 					}}
 				>
-					{dateExists ? <DaysUntil /> : <InputFields />}
-					<Divider flexItem sx={{ opacity: 0.3 }} />
-					<CalendarEvent />
+					{calendarCountdown ? (
+						<CalendarEvent isFullscreen onClear={handleCalendarClear} />
+					) : (
+						<>
+							{dateExists ? <DaysUntil /> : <InputFields onCountdownToCalendar={handleCalendarCountdown} />}
+							<Divider flexItem sx={{ opacity: 0.3 }} />
+							<CalendarEvent />
+						</>
+					)}
 				</Box>
 			</Box>
 		</ThemeProvider>
