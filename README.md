@@ -24,8 +24,6 @@ npm run watch
 npm test
 ```
 
-> `npm start` is not how you develop this — it's a Chrome extension, not a web app. Load `dist/` as an unpacked extension instead.
-
 ## Loading as an unpacked extension
 
 1. Run `npm run build`
