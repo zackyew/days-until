@@ -44,6 +44,24 @@ export async function fetchNextEvent(): Promise<CalendarEventItem | null> {
 	return items[0] ?? null;
 }
 
+const CACHED_EVENT_KEY = 'cachedCalendarEvent';
+
+export async function getCachedEvent(): Promise<CalendarEventItem | null> {
+	return new Promise((resolve) => {
+		chrome.storage.local.get(CACHED_EVENT_KEY, (result) => {
+			resolve((result[CACHED_EVENT_KEY] as CalendarEventItem) ?? null);
+		});
+	});
+}
+
+export async function setCachedEvent(event: CalendarEventItem | null): Promise<void> {
+	if (event === null) {
+		await chrome.storage.local.remove(CACHED_EVENT_KEY);
+	} else {
+		await chrome.storage.local.set({ [CACHED_EVENT_KEY]: event });
+	}
+}
+
 export async function disconnectCalendar(): Promise<void> {
 	try {
 		const token = await getAuthToken(false);
@@ -53,4 +71,5 @@ export async function disconnectCalendar(): Promise<void> {
 		// Token may already be missing or revocation may fail — that's fine
 	}
 	await chrome.storage.sync.remove('calendarConnected');
+	await chrome.storage.local.remove(CACHED_EVENT_KEY);
 }

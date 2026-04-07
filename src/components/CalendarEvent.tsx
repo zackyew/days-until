@@ -7,6 +7,8 @@ import {
 	disconnectCalendar,
 	fetchNextEvent,
 	getAuthToken,
+	getCachedEvent,
+	setCachedEvent,
 } from '../services/googleCalendar';
 import { formatTimeUntil } from '../utils/time';
 
@@ -60,6 +62,7 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 			setEvent(next);
 			setNoEvents(next === null);
 			setStatus('connected');
+			await setCachedEvent(next);
 		} catch (err) {
 			console.error('[CalendarEvent] loadEvent failed:', err);
 			setErrorDetail(toGenericError(err));
@@ -68,12 +71,18 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 	}, []);
 
 	useEffect(() => {
-		chrome.storage.sync.get('calendarConnected', (result) => {
-			if (result.calendarConnected) {
-				loadEvent();
-			} else {
+		chrome.storage.sync.get('calendarConnected', async (result) => {
+			if (!result.calendarConnected) {
 				setStatus('disconnected');
+				return;
 			}
+			const cached = await getCachedEvent();
+			if (cached) {
+				setEvent(cached);
+				setNoEvents(false);
+				setStatus('connected');
+			}
+			loadEvent();
 		});
 	}, [loadEvent]);
 
