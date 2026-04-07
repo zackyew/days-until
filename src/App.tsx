@@ -1,60 +1,36 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import InputFields from './components/InputFields';
-import { Box, createTheme, CssBaseline, ThemeProvider } from '@mui/material';
+import { Box, CssBaseline, Divider, ThemeProvider, createTheme } from '@mui/material';
 import './App.css';
 import DaysUntil from './components/DaysUntil';
-import ModeToggle from './components/ModeToggle';
+import ThemeSelector from './components/ThemeSelector';
+import CalendarEvent from './components/CalendarEvent';
+import { ThemeName } from './themes';
+
+const muiTheme = createTheme();
 
 function App() {
 	const [dateExists, setDateExists] = useState<boolean>(
 		window.localStorage.getItem('target-date') !== null
 	);
-	const [colourScheme, setColourScheme] = useState<'light' | 'dark'>('light');
-
-	const darkTheme = createTheme({
-		colorSchemes: {
-			dark: true,
-		},
-	});
+	const [themeName, setThemeName] = useState<ThemeName>(
+		() => (window.localStorage.getItem('theme') as ThemeName) ?? 'mint'
+	);
 
 	const handleLocalStorageCheck = useCallback(() => {
-		const targetDate = window.localStorage.getItem('target-date');
-
-		if (targetDate !== null) {
-			setDateExists(true);
-		} else {
-			setDateExists(false);
-		}
-	}, []);
-
-	const handleColourSchemeChange = useCallback(() => {
-		const mode = window.localStorage.getItem('mui-mode');
-
-		if (mode === 'light') {
-			setColourScheme('light');
-		} else {
-			setColourScheme('dark');
-		}
+		setDateExists(window.localStorage.getItem('target-date') !== null);
+		setThemeName((window.localStorage.getItem('theme') as ThemeName) ?? 'mint');
 	}, []);
 
 	useEffect(() => {
-		handleColourSchemeChange();
-
-		window.addEventListener('days-until', () => {
-			handleLocalStorageCheck();
-			handleColourSchemeChange();
-		});
-
+		window.addEventListener('days-until', handleLocalStorageCheck);
 		return () => {
-			window.removeEventListener('days-until', () => {
-				handleLocalStorageCheck();
-				handleColourSchemeChange();
-			});
+			window.removeEventListener('days-until', handleLocalStorageCheck);
 		};
-	}, [handleColourSchemeChange, handleLocalStorageCheck]);
+	}, [handleLocalStorageCheck]);
 
 	return (
-		<ThemeProvider theme={darkTheme} defaultMode='light'>
+		<ThemeProvider theme={muiTheme}>
 			<CssBaseline />
 			<Box
 				height='100vh'
@@ -62,12 +38,19 @@ function App() {
 				display='flex'
 				justifyContent='center'
 				alignItems='center'
-				className={
-					colourScheme === 'light' ? 'background_light' : 'background_dark'
-				}
+				className={`background_${themeName}`}
 			>
-				<ModeToggle />
-				{dateExists ? <DaysUntil /> : <InputFields />}
+				<ThemeSelector />
+				<Box
+					display='flex'
+					flexDirection='column'
+					alignItems='center'
+					gap={4}
+				>
+					{dateExists ? <DaysUntil /> : <InputFields />}
+					<Divider flexItem sx={{ opacity: 0.3 }} />
+					<CalendarEvent />
+				</Box>
 			</Box>
 		</ThemeProvider>
 	);
