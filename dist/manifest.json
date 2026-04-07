@@ -9,5 +9,9 @@
 	"chrome_url_overrides": {
 		"newtab": "js/index.html"
 	},
-	"permissions": ["storage"]
+	"permissions": ["storage", "identity"],
+	"oauth2": {
+		"client_id": "YOUR_CLIENT_ID.apps.googleusercontent.com",
+		"scopes": ["https://www.googleapis.com/auth/calendar.readonly"]
+	}
 }

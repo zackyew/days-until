@@ -1,4 +1,4 @@
-.background_light {
+.background_mint {
 	background: linear-gradient(55deg, #adf2e0, #9fa0e8, #f3d088);
 	background-size: 600% 600%;
 
@@ -7,8 +7,35 @@
 	animation: AnimationName 0s ease infinite;
 }
 
-.background_dark {
-	background: linear-gradient(341deg, #7f4f21, #562222, #0c0a3e);
+.background_midnight {
+	background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+	background-size: 600% 600%;
+
+	-webkit-animation: AnimationName 0s ease infinite;
+	-moz-animation: AnimationName 0s ease infinite;
+	animation: AnimationName 0s ease infinite;
+}
+
+.background_sunset {
+	background: linear-gradient(135deg, #f5a623, #f53d7f, #9b59b6);
+	background-size: 600% 600%;
+
+	-webkit-animation: AnimationName 0s ease infinite;
+	-moz-animation: AnimationName 0s ease infinite;
+	animation: AnimationName 0s ease infinite;
+}
+
+.background_aurora {
+	background: linear-gradient(135deg, #43b89c, #2d4e8a, #9b59b6);
+	background-size: 600% 600%;
+
+	-webkit-animation: AnimationName 0s ease infinite;
+	-moz-animation: AnimationName 0s ease infinite;
+	animation: AnimationName 0s ease infinite;
+}
+
+.background_rose {
+	background: linear-gradient(135deg, #f093fb, #f5576c, #c471ed);
 	background-size: 600% 600%;
 
 	-webkit-animation: AnimationName 0s ease infinite;
