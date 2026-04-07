@@ -2,7 +2,7 @@
 	"version": "1.0.0",
 	"manifest_version": 3,
 	"name": "Days Until",
-	"description": "A Chrome extension that displays a countdown to a certain date on a new tab. Also connects to Google Calendar to show the next upcoming event.",
+	"description": "This is a chrome extension that displays a countdown to a certain date on a new tab",
 	"action": {
 		"default_title": "Days Until"
 	},
@@ -11,9 +11,9 @@
 	},
 	"permissions": ["storage", "identity"],
 	"host_permissions": [
-		"https://www.googleapis.com/*",
-		"https://oauth2.googleapis.com/*"
-	],
+    "https://www.googleapis.com/calendar/v3/*",                                                                                                         
+    "https://oauth2.googleapis.com/revoke"
+  ],
 	"oauth2": {
 		"client_id": "457255059655-gppp0de1nhcennnf0pjo05br39k2mfac.apps.googleusercontent.com",
 		"scopes": ["https://www.googleapis.com/auth/calendar.readonly"]
