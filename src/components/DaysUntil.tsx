@@ -48,22 +48,22 @@ const DaysUntil = () => {
 	}, []);
 
 	return (
-		<Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' gap={2}>
+		<Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' gap={2} sx={{ textAlign: 'center', wordBreak: 'break-word' }}>
 			{isCelebration ? (
 				<>
-					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85 }}>
+					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontSize: { lg: '2.5rem', xl: '3.75rem' } }}>
 						Today's the day!
 					</Typography>
-					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em' }}>
+					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em', fontSize: { lg: '3.75rem', xl: '6rem' } }}>
 						{eventName}
 					</Typography>
 				</>
 			) : (
 				<>
-					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em' }}>
+					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em', fontSize: { lg: '3.75rem', xl: '6rem' } }}>
 						{eventName}
 					</Typography>
-					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums' }}>
+					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums', fontSize: { lg: '2.5rem', xl: '3.75rem' } }}>
 						{timeLeft}
 					</Typography>
 				</>

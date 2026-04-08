@@ -138,7 +138,7 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 			{status === 'connected' && event && eventStart && (
 				<>
 					<Box display='flex' alignItems='center' gap={0.5}>
-						<Typography variant={isFullscreen ? 'h1' : 'h5'} fontWeight={isFullscreen ? 400 : 500} sx={isFullscreen ? { opacity: 0.85, letterSpacing: '0.01em' } : {}}>
+						<Typography variant={isFullscreen ? 'h1' : 'h5'} fontWeight={isFullscreen ? 400 : 500} sx={isFullscreen ? { opacity: 0.85, letterSpacing: '0.01em', fontSize: { lg: '3.75rem', xl: '6rem' } } : {}}>
 							{event.summary}
 						</Typography>
 						{callUrl && (
@@ -155,7 +155,7 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 					</Box>
 
 					{isFullscreen ? (
-						<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums' }}>
+						<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums', fontSize: { lg: '2.5rem', xl: '3.75rem' } }}>
 							{formatTimeUntil(eventStart)}
 						</Typography>
 					) : (

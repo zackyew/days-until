@@ -75,8 +75,11 @@ function App() {
 						backdropFilter: 'blur(24px)',
 						WebkitBackdropFilter: 'blur(24px)',
 						border: '1px solid rgba(255,255,255,0.2)',
-						borderRadius: '24px',
-						padding: '48px 64px',
+						borderRadius: { xs: '16px', md: '24px' },
+						padding: { xs: '24px 20px', sm: '32px 40px', md: '36px 48px', xl: '48px 64px' },
+						width: { xs: '92vw', sm: '80vw', md: 'auto' },
+						maxWidth: { md: '860px', lg: '620px', xl: '900px' },
+						boxSizing: 'border-box',
 					}}
 				>
 					{calendarCountdown ? (

@@ -26,11 +26,10 @@ npm test
 
 ## Loading as an unpacked extension
 
-1. Run `npm run build`
-2. Go to `chrome://extensions/`
-3. Enable **Developer mode** (top right)
-4. Click **Load unpacked** and select the `/dist` folder
-5. Open a new tab — the extension will appear automatically
+1. Go to `chrome://extensions/`
+2. Enable **Developer mode** (top right)
+3. Click **Load unpacked** and select the `/dist` folder
+4. Open a new tab — the extension will appear automatically
 
 ## Google Calendar integration
 
