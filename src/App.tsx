@@ -78,7 +78,7 @@ function App() {
 						borderRadius: { xs: '16px', md: '24px' },
 						padding: { xs: '24px 20px', sm: '32px 40px', md: '36px 48px', xl: '48px 64px' },
 						width: { xs: '92vw', sm: '80vw', md: 'auto' },
-						maxWidth: { md: '860px', lg: '620px', xl: '900px' },
+						maxWidth: { md: '860px', lg: 'clamp(620px, calc(-700px + 85vw), 900px)' },
 						boxSizing: 'border-box',
 					}}
 				>

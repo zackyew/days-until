@@ -18,7 +18,7 @@ const Clock = () => {
 			<Typography
 				variant='h3'
 				fontWeight={300}
-				sx={{ opacity: 0.7, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em' }}
+				sx={{ opacity: 0.7, fontVariantNumeric: 'tabular-nums', letterSpacing: '0.02em', fontSize: 'clamp(1.5rem, calc(-1.28rem + 2.94vw), 2.25rem)' }}
 			>
 				{time}
 			</Typography>

@@ -51,19 +51,19 @@ const DaysUntil = () => {
 		<Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' gap={2} sx={{ textAlign: 'center', wordBreak: 'break-word' }}>
 			{isCelebration ? (
 				<>
-					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontSize: { lg: '2.5rem', xl: '3.75rem' } }}>
+					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontSize: 'clamp(2rem, calc(-1.71rem + 3.92vw), 3rem)' }}>
 						Today's the day!
 					</Typography>
-					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em', fontSize: { lg: '3.75rem', xl: '6rem' } }}>
+					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em', fontSize: 'clamp(3rem, calc(-2.56rem + 5.88vw), 4.5rem)' }}>
 						{eventName}
 					</Typography>
 				</>
 			) : (
 				<>
-					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em', fontSize: { lg: '3.75rem', xl: '6rem' } }}>
+					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em', fontSize: 'clamp(3rem, calc(-2.56rem + 5.88vw), 4.5rem)' }}>
 						{eventName}
 					</Typography>
-					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums', fontSize: { lg: '2.5rem', xl: '3.75rem' } }}>
+					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums', fontSize: 'clamp(2rem, calc(-1.71rem + 3.92vw), 3rem)' }}>
 						{timeLeft}
 					</Typography>
 				</>

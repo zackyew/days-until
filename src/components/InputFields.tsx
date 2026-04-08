@@ -37,7 +37,7 @@ function InputFields({ onCountdownToCalendar }: Props) {
 	return (
 		<Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' gap={4}>
 			<AvTimerIcon sx={{ fontSize: 75 }} />
-			<Typography variant='h4'>
+			<Typography variant='h4' sx={{ fontSize: '1.5rem' }}>
 				What are you looking forward to next?
 			</Typography>
 			<TextField
