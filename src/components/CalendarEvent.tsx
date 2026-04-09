@@ -1,7 +1,14 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Box, Button, CircularProgress, IconButton, Link, Typography } from '@mui/material';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import {
+	Box,
+	Button,
+	CircularProgress,
+	IconButton,
+	Link,
+	Typography,
+} from '@mui/material';
 import dayjs from 'dayjs';
+import { useCallback, useEffect, useState } from 'react';
 import {
 	CalendarEventItem,
 	disconnectCalendar,
@@ -35,7 +42,10 @@ function isUrl(str: string): boolean {
 	}
 }
 
-function formatEventDateTime(start: CalendarEventItem['start'], end: CalendarEventItem['end']): string {
+function formatEventDateTime(
+	start: CalendarEventItem['start'],
+	end: CalendarEventItem['end'],
+): string {
 	if (start.dateTime) {
 		const startStr = dayjs(start.dateTime).format('ddd, MMM D · h:mm A');
 		const endStr = end.dateTime ? dayjs(end.dateTime).format('h:mm A') : null;
@@ -113,7 +123,9 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 	}, []);
 
 	const eventStart = event?.start.dateTime ?? event?.start.date;
-	const callUrl = event?.hangoutLink ?? (event?.location && isUrl(event.location) ? event.location : null);
+	const callUrl =
+		event?.hangoutLink ??
+		(event?.location && isUrl(event.location) ? event.location : null);
 
 	return (
 		<Box
@@ -126,7 +138,12 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 			{status === 'loading' && <CircularProgress size={16} />}
 
 			{status === 'disconnected' && (
-				<Button variant='text' size='small' onClick={handleConnect} sx={{ opacity: 0.8 }}>
+				<Button
+					variant='text'
+					size='small'
+					onClick={handleConnect}
+					sx={{ opacity: 0.8 }}
+				>
 					Connect Google Calendar
 				</Button>
 			)}
@@ -138,7 +155,19 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 			{status === 'connected' && event && eventStart && (
 				<>
 					<Box display='flex' alignItems='center' gap={0.5}>
-						<Typography variant={isFullscreen ? 'h1' : 'h5'} fontWeight={isFullscreen ? 400 : 500} sx={isFullscreen ? { opacity: 0.85, letterSpacing: '0.01em', fontSize: 'clamp(3rem, calc(-2.56rem + 5.88vw), 4.5rem)' } : {}}>
+						<Typography
+							variant={isFullscreen ? 'h1' : 'h5'}
+							fontWeight={isFullscreen ? 400 : 500}
+							sx={
+								isFullscreen
+									? {
+											opacity: 0.85,
+											letterSpacing: '0.01em',
+											fontSize: 'clamp(3rem, calc(-2.56rem + 5.88vw), 4.5rem)',
+										}
+									: {}
+							}
+						>
 							{event.summary}
 						</Typography>
 						{callUrl && (
@@ -149,13 +178,23 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 								rel='noopener noreferrer'
 								sx={isFullscreen ? { padding: '6px' } : { padding: '4px' }}
 							>
-								<OpenInNewIcon sx={{ fontSize: isFullscreen ? '2rem' : '1.1rem' }} />
+								<OpenInNewIcon
+									sx={{ fontSize: isFullscreen ? '2rem' : '1.1rem' }}
+								/>
 							</IconButton>
 						)}
 					</Box>
 
 					{isFullscreen ? (
-						<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums', fontSize: 'clamp(2rem, calc(-1.71rem + 3.92vw), 3rem)' }}>
+						<Typography
+							variant='h2'
+							fontWeight={400}
+							sx={{
+								opacity: 0.85,
+								fontVariantNumeric: 'tabular-nums',
+								fontSize: 'clamp(2rem, calc(-1.71rem + 3.92vw), 3rem)',
+							}}
+						>
 							{formatTimeUntil(eventStart)}
 						</Typography>
 					) : (
@@ -164,12 +203,19 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 						</Typography>
 					)}
 
-					<Typography variant={isFullscreen ? 'body1' : 'h6'} fontWeight={400} sx={{ opacity: isFullscreen ? 0.55 : 1 }}>
+					<Typography
+						variant={isFullscreen ? 'body1' : 'h6'}
+						fontWeight={400}
+						sx={{ opacity: isFullscreen ? 0.55 : 1 }}
+					>
 						{formatEventDateTime(event.start, event.end)}
 					</Typography>
 
 					{event.location && !isUrl(event.location) && (
-						<Typography variant='body1' sx={{ opacity: 0.75 }}>
+						<Typography
+							variant='body1'
+							sx={{ opacity: 0.75, textAlign: 'center' }}
+						>
 							{event.location}
 						</Typography>
 					)}
@@ -179,7 +225,12 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 							Clear
 						</Button>
 					) : (
-						<Link component='button' variant='body2' onClick={handleDisconnect} sx={{ mt: 0.5, cursor: 'pointer', opacity: 0.75 }}>
+						<Link
+							component='button'
+							variant='body2'
+							onClick={handleDisconnect}
+							sx={{ mt: 0.5, cursor: 'pointer', opacity: 0.75 }}
+						>
 							Disconnect calendar
 						</Link>
 					)}
@@ -187,10 +238,20 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 			)}
 
 			{status === 'error' && (
-				<Box display='flex' flexDirection='column' alignItems='center' gap={0.5}>
+				<Box
+					display='flex'
+					flexDirection='column'
+					alignItems='center'
+					gap={0.5}
+				>
 					<Box display='flex' alignItems='center' gap={1}>
 						<Typography variant='body1'>Could not load calendar</Typography>
-						<Link component='button' variant='body2' onClick={loadEvent} sx={{ cursor: 'pointer' }}>
+						<Link
+							component='button'
+							variant='body2'
+							onClick={loadEvent}
+							sx={{ cursor: 'pointer' }}
+						>
 							Retry
 						</Link>
 					</Box>
