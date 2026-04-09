@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import TextField from '@mui/material/TextField';
 import { Box, Button, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import dayjs, { Dayjs } from 'dayjs';
 import AvTimerIcon from '@mui/icons-material/AvTimer';
 import { TYPOGRAPHY } from '../themes';
@@ -10,6 +11,20 @@ import {
 	LocalizationProvider,
 } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+
+const InputBox = styled(Box)({
+	display: 'flex',
+	justifyContent: 'center',
+	alignItems: 'center',
+	flexDirection: 'column',
+	gap: 32,
+});
+
+const TimerIcon = styled(AvTimerIcon)({
+	fontSize: 75,
+});
+
+const HeadingText = styled(Typography)(TYPOGRAPHY.inputHeading);
 
 interface Props {
 	onCountdownToCalendar?: () => void;
@@ -36,11 +51,9 @@ function InputFields({ onCountdownToCalendar }: Props) {
 	}, [error]);
 
 	return (
-		<Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' gap={4}>
-			<AvTimerIcon sx={{ fontSize: 75 }} />
-			<Typography variant='h4' sx={TYPOGRAPHY.inputHeading}>
-				What are you looking forward to next?
-			</Typography>
+		<InputBox>
+			<TimerIcon />
+			<HeadingText variant='h4'>What are you looking forward to next?</HeadingText>
 			<TextField
 				placeholder='Name'
 				autoComplete='off'
@@ -79,7 +92,7 @@ function InputFields({ onCountdownToCalendar }: Props) {
 					Countdown to next calendar event
 				</Button>
 			)}
-		</Box>
+		</InputBox>
 	);
 }
 

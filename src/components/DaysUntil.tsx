@@ -1,9 +1,28 @@
 import { Box, Button, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import confetti from 'canvas-confetti';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
 import { TYPOGRAPHY } from '../themes';
 import { formatTimeUntil } from '../utils/time';
+
+const ContentBox = styled(Box)({
+	display: 'flex',
+	justifyContent: 'center',
+	alignItems: 'center',
+	flexDirection: 'column',
+	gap: 16,
+	textAlign: 'center',
+	wordBreak: 'break-word',
+});
+
+const TitleText = styled(Typography)(TYPOGRAPHY.displayTitle);
+
+const SubtitleText = styled(Typography)(TYPOGRAPHY.displaySubtitle);
+
+const ClearButton = styled(Button)({
+	marginTop: 16,
+});
 
 const DaysUntil = () => {
 	const [eventName, setEventName] = useState<string | null>('');
@@ -49,30 +68,20 @@ const DaysUntil = () => {
 	}, []);
 
 	return (
-		<Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' gap={2} sx={{ textAlign: 'center', wordBreak: 'break-word' }}>
+		<ContentBox>
 			{isCelebration ? (
 				<>
-					<Typography variant='h2' sx={TYPOGRAPHY.displaySubtitle}>
-						Today's the day!
-					</Typography>
-					<Typography variant='h1' sx={TYPOGRAPHY.displayTitle}>
-						{eventName}
-					</Typography>
+					<SubtitleText variant='h2'>Today's the day!</SubtitleText>
+					<TitleText variant='h1'>{eventName}</TitleText>
 				</>
 			) : (
 				<>
-					<Typography variant='h1' sx={TYPOGRAPHY.displayTitle}>
-						{eventName}
-					</Typography>
-					<Typography variant='h2' sx={TYPOGRAPHY.displaySubtitle}>
-						{timeLeft}
-					</Typography>
+					<TitleText variant='h1'>{eventName}</TitleText>
+					<SubtitleText variant='h2'>{timeLeft}</SubtitleText>
 				</>
 			)}
-			<Button variant='outlined' onClick={handleClear} sx={{ marginTop: 2 }}>
-				Clear
-			</Button>
-		</Box>
+			<ClearButton variant='outlined' onClick={handleClear}>Clear</ClearButton>
+		</ContentBox>
 	);
 };
 

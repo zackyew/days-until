@@ -1,3 +1,4 @@
+import React from 'react';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {
 	Box,
@@ -7,9 +8,9 @@ import {
 	Link,
 	Typography,
 } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
-import { TYPOGRAPHY } from '../themes';
 import {
 	CalendarEventItem,
 	disconnectCalendar,
@@ -18,11 +19,107 @@ import {
 	getCachedEvent,
 	setCachedEvent,
 } from '../services/googleCalendar';
+import { TYPOGRAPHY } from '../themes';
 import { formatTimeUntil } from '../utils/time';
 
 type Status = 'disconnected' | 'loading' | 'connected' | 'error';
 
 const REFRESH_INTERVAL_MS = 60_000;
+
+interface FullscreenProp {
+	isFullscreen: boolean;
+}
+const forwardAll = {
+	shouldForwardProp: (prop: string) => prop !== 'isFullscreen',
+};
+
+const EventBox = styled(
+	Box,
+	forwardAll,
+)<FullscreenProp>(({ isFullscreen }) => ({
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'center',
+	gap: isFullscreen ? 16 : 4,
+	opacity: isFullscreen ? 1 : 0.75,
+}));
+
+const EventTitleRow = styled(Box)({
+	display: 'flex',
+	alignItems: 'center',
+	gap: 4,
+});
+
+const EventTitle = styled(
+	Typography,
+	forwardAll,
+)<FullscreenProp>(({ isFullscreen }) =>
+	isFullscreen ? TYPOGRAPHY.displayTitle : { fontWeight: 500 },
+);
+
+interface CallIconButtonProps extends FullscreenProp {
+	component?: React.ElementType;
+	href?: string;
+	target?: string;
+	rel?: string;
+}
+
+const CallIconButton = styled(IconButton, {
+	shouldForwardProp: (prop) => prop !== 'isFullscreen',
+})<CallIconButtonProps>(({ isFullscreen }) => ({
+	padding: isFullscreen ? '6px' : '4px',
+}));
+
+const CallIcon = styled(
+	OpenInNewIcon,
+	forwardAll,
+)<FullscreenProp>(({ isFullscreen }) => ({
+	fontSize: isFullscreen ? '2rem' : '1.1rem',
+}));
+
+const FullscreenSubtitle = styled(Typography)(TYPOGRAPHY.displaySubtitle);
+
+const EventDateTime = styled(
+	Typography,
+	forwardAll,
+)<FullscreenProp>(({ isFullscreen }) => ({
+	opacity: isFullscreen ? 0.55 : 1,
+	fontWeight: 400,
+}));
+
+const EventLocation = styled(Typography)({
+	opacity: 0.75,
+	textAlign: 'center',
+});
+
+const ConnectButton = styled(Button)({ opacity: 0.8 });
+
+const FullscreenClearButton = styled(Button)({ marginTop: 16 });
+
+const DisconnectLink = styled(Link)({
+	marginTop: 4,
+	cursor: 'pointer',
+	opacity: 0.75,
+}) as typeof Link;
+
+const RetryLink = styled(Link)({ cursor: 'pointer' }) as typeof Link;
+
+const NonFullscreenTime = styled(Typography)({ opacity: 0.75 });
+
+const ErrorDetail = styled(Typography)({ opacity: 0.6 });
+
+const ErrorContainer = styled(Box)({
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'center',
+	gap: 4,
+});
+
+const ErrorRow = styled(Box)({
+	display: 'flex',
+	alignItems: 'center',
+	gap: 8,
+});
 
 function toGenericError(err: unknown): string {
 	const msg = err instanceof Error ? err.message : String(err);
@@ -129,24 +226,13 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 		(event?.location && isUrl(event.location) ? event.location : null);
 
 	return (
-		<Box
-			display='flex'
-			flexDirection='column'
-			alignItems='center'
-			gap={isFullscreen ? 2 : 0.5}
-			sx={{ opacity: isFullscreen ? 1 : 0.75 }}
-		>
+		<EventBox isFullscreen={isFullscreen}>
 			{status === 'loading' && <CircularProgress size={16} />}
 
 			{status === 'disconnected' && (
-				<Button
-					variant='text'
-					size='small'
-					onClick={handleConnect}
-					sx={{ opacity: 0.8 }}
-				>
+				<ConnectButton variant='text' size='small' onClick={handleConnect}>
 					Connect Google Calendar
-				</Button>
+				</ConnectButton>
 			)}
 
 			{status === 'connected' && noEvents && (
@@ -155,98 +241,77 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 
 			{status === 'connected' && event && eventStart && (
 				<>
-					<Box display='flex' alignItems='center' gap={0.5}>
-						<Typography
+					<EventTitleRow>
+						<EventTitle
 							variant={isFullscreen ? 'h1' : 'h5'}
-							sx={isFullscreen ? TYPOGRAPHY.displayTitle : { fontWeight: 500 }}
+							isFullscreen={isFullscreen}
 						>
 							{event.summary}
-						</Typography>
+						</EventTitle>
 						{callUrl && (
-							<IconButton
+							<CallIconButton
 								component='a'
 								href={callUrl}
 								target='_blank'
 								rel='noopener noreferrer'
-								sx={isFullscreen ? { padding: '6px' } : { padding: '4px' }}
+								isFullscreen={isFullscreen}
 							>
-								<OpenInNewIcon
-									sx={{ fontSize: isFullscreen ? '2rem' : '1.1rem' }}
-								/>
-							</IconButton>
+								<CallIcon isFullscreen={isFullscreen} />
+							</CallIconButton>
 						)}
-					</Box>
+					</EventTitleRow>
 
 					{isFullscreen ? (
-						<Typography variant='h2' sx={TYPOGRAPHY.displaySubtitle}>
+						<FullscreenSubtitle variant='h2'>
 							{formatTimeUntil(eventStart)}
-						</Typography>
+						</FullscreenSubtitle>
 					) : (
-						<Typography variant='body1' sx={{ opacity: 0.75 }}>
+						<NonFullscreenTime variant='body1'>
 							{formatTimeUntil(eventStart)}
-						</Typography>
+						</NonFullscreenTime>
 					)}
 
-					<Typography
+					<EventDateTime
 						variant={isFullscreen ? 'body1' : 'h6'}
-						fontWeight={400}
-						sx={{ opacity: isFullscreen ? 0.55 : 1 }}
+						isFullscreen={isFullscreen}
 					>
 						{formatEventDateTime(event.start, event.end)}
-					</Typography>
+					</EventDateTime>
 
 					{event.location && !isUrl(event.location) && (
-						<Typography
-							variant='body1'
-							sx={{ opacity: 0.75, textAlign: 'center' }}
-						>
-							{event.location}
-						</Typography>
+						<EventLocation variant='body1'>{event.location}</EventLocation>
 					)}
 
 					{isFullscreen ? (
-						<Button variant='outlined' onClick={onClear} sx={{ mt: 2 }}>
+						<FullscreenClearButton variant='outlined' onClick={onClear}>
 							Clear
-						</Button>
+						</FullscreenClearButton>
 					) : (
-						<Link
+						<DisconnectLink
 							component='button'
 							variant='body2'
 							onClick={handleDisconnect}
-							sx={{ mt: 0.5, cursor: 'pointer', opacity: 0.75 }}
 						>
 							Disconnect calendar
-						</Link>
+						</DisconnectLink>
 					)}
 				</>
 			)}
 
 			{status === 'error' && (
-				<Box
-					display='flex'
-					flexDirection='column'
-					alignItems='center'
-					gap={0.5}
-				>
-					<Box display='flex' alignItems='center' gap={1}>
+				<ErrorContainer>
+					<ErrorRow>
 						<Typography variant='body1'>Could not load calendar</Typography>
-						<Link
-							component='button'
-							variant='body2'
-							onClick={loadEvent}
-							sx={{ cursor: 'pointer' }}
-						>
+						<RetryLink component='button' variant='body2' onClick={loadEvent}>
 							Retry
-						</Link>
-					</Box>
+						</RetryLink>
+					</ErrorRow>
 					{errorDetail && (
-						<Typography variant='body2' sx={{ opacity: 0.6 }}>
-							{errorDetail}
-						</Typography>
+						<ErrorDetail variant='body2'>{errorDetail}</ErrorDetail>
 					)}
-				</Box>
+				</ErrorContainer>
 			)}
-		</Box>
+		</EventBox>
 	);
 };
 

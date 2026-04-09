@@ -1,7 +1,21 @@
 import { Box, Typography } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 import { TYPOGRAPHY } from '../themes';
+
+const ClockBox = styled(Box)({
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'center',
+	gap: 4,
+});
+
+const TimeText = styled(Typography)(TYPOGRAPHY.clock);
+
+const DateText = styled(Typography)({
+	opacity: 0.5,
+});
 
 const Clock = () => {
 	const [time, setTime] = useState(() => dayjs().format('h:mm A'));
@@ -15,14 +29,10 @@ const Clock = () => {
 	}, []);
 
 	return (
-		<Box display='flex' flexDirection='column' alignItems='center' gap={0.5}>
-			<Typography variant='h3' sx={TYPOGRAPHY.clock}>
-				{time}
-			</Typography>
-			<Typography variant='body1' sx={{ opacity: 0.5 }}>
-				{date}
-			</Typography>
-		</Box>
+		<ClockBox>
+			<TimeText variant='h3'>{time}</TimeText>
+			<DateText variant='body1'>{date}</DateText>
+		</ClockBox>
 	);
 };
 

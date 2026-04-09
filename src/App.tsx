@@ -1,12 +1,58 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import InputFields from './components/InputFields';
 import { Box, CssBaseline, Divider, ThemeProvider, createTheme } from '@mui/material';
+import { styled } from '@mui/material/styles';
 import './App.css';
 import DaysUntil from './components/DaysUntil';
 import ThemeSelector from './components/ThemeSelector';
 import CalendarEvent from './components/CalendarEvent';
 import Clock from './components/Clock';
 import { THEMES, ThemeName } from './themes';
+
+const PageRoot = styled(Box)({
+	height: '100vh',
+	width: '100vw',
+	display: 'flex',
+	flexDirection: 'column',
+	justifyContent: 'center',
+	alignItems: 'center',
+	gap: 24,
+});
+
+const GlassPanel = styled(Box, {
+	shouldForwardProp: (prop) => prop !== 'cardBg',
+})<{ cardBg: string }>(({ theme, cardBg }) => ({
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'center',
+	gap: 32,
+	background: cardBg,
+	backdropFilter: 'blur(24px)',
+	WebkitBackdropFilter: 'blur(24px)',
+	border: '1px solid rgba(255,255,255,0.2)',
+	borderRadius: '16px',
+	padding: '24px 20px',
+	width: '92vw',
+	boxSizing: 'border-box',
+	[theme.breakpoints.up('sm')]: {
+		padding: '32px 40px',
+		width: '80vw',
+	},
+	[theme.breakpoints.up('md')]: {
+		padding: '36px 48px',
+		width: 'auto',
+		borderRadius: '24px',
+		maxWidth: '860px',
+	},
+	[theme.breakpoints.up('lg')]: {
+		maxWidth: 'clamp(620px, calc(-700px + 85vw), 900px)',
+	},
+	[theme.breakpoints.up('xl')]: {
+		padding: '48px 64px',
+	},
+}));
+
+const StyledDivider = styled(Divider)({ opacity: 0.3 });
 
 function App() {
 	const [dateExists, setDateExists] = useState<boolean>(
@@ -53,46 +99,21 @@ function App() {
 	return (
 		<ThemeProvider theme={muiTheme}>
 			<CssBaseline />
-			<Box
-				height='100vh'
-				width='100vw'
-				display='flex'
-				flexDirection='column'
-				justifyContent='center'
-				alignItems='center'
-				gap={3}
-				className={`background_${themeName}`}
-			>
+			<PageRoot className={`background_${themeName}`}>
 				<ThemeSelector />
 				<Clock />
-				<Box
-					display='flex'
-					flexDirection='column'
-					alignItems='center'
-					gap={4}
-					sx={{
-						background: THEMES[themeName].cardBg,
-						backdropFilter: 'blur(24px)',
-						WebkitBackdropFilter: 'blur(24px)',
-						border: '1px solid rgba(255,255,255,0.2)',
-						borderRadius: { xs: '16px', md: '24px' },
-						padding: { xs: '24px 20px', sm: '32px 40px', md: '36px 48px', xl: '48px 64px' },
-						width: { xs: '92vw', sm: '80vw', md: 'auto' },
-						maxWidth: { md: '860px', lg: 'clamp(620px, calc(-700px + 85vw), 900px)' },
-						boxSizing: 'border-box',
-					}}
-				>
+				<GlassPanel cardBg={THEMES[themeName].cardBg}>
 					{calendarCountdown ? (
 						<CalendarEvent isFullscreen onClear={handleCalendarClear} />
 					) : (
 						<>
 							{dateExists ? <DaysUntil /> : <InputFields onCountdownToCalendar={handleCalendarCountdown} />}
-							<Divider flexItem sx={{ opacity: 0.3 }} />
+							<StyledDivider flexItem />
 							<CalendarEvent />
 						</>
 					)}
-				</Box>
-			</Box>
+				</GlassPanel>
+			</PageRoot>
 		</ThemeProvider>
 	);
 }
