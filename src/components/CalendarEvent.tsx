@@ -9,6 +9,7 @@ import {
 } from '@mui/material';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
+import { TYPOGRAPHY } from '../themes';
 import {
 	CalendarEventItem,
 	disconnectCalendar,
@@ -157,16 +158,7 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 					<Box display='flex' alignItems='center' gap={0.5}>
 						<Typography
 							variant={isFullscreen ? 'h1' : 'h5'}
-							fontWeight={isFullscreen ? 400 : 500}
-							sx={
-								isFullscreen
-									? {
-											opacity: 0.85,
-											letterSpacing: '0.01em',
-											fontSize: 'clamp(3rem, calc(-2.56rem + 5.88vw), 4.5rem)',
-										}
-									: {}
-							}
+							sx={isFullscreen ? TYPOGRAPHY.displayTitle : { fontWeight: 500 }}
 						>
 							{event.summary}
 						</Typography>
@@ -186,15 +178,7 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 					</Box>
 
 					{isFullscreen ? (
-						<Typography
-							variant='h2'
-							fontWeight={400}
-							sx={{
-								opacity: 0.85,
-								fontVariantNumeric: 'tabular-nums',
-								fontSize: 'clamp(2rem, calc(-1.71rem + 3.92vw), 3rem)',
-							}}
-						>
+						<Typography variant='h2' sx={TYPOGRAPHY.displaySubtitle}>
 							{formatTimeUntil(eventStart)}
 						</Typography>
 					) : (

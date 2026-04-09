@@ -30,3 +30,28 @@ export const THEMES = {
 } as const;
 
 export type ThemeName = keyof typeof THEMES;
+
+export const TYPOGRAPHY = {
+	displayTitle: {
+		fontWeight: 400,
+		opacity: 0.85,
+		letterSpacing: '0.01em',
+		fontSize: 'clamp(3rem, calc(-2.56rem + 5.88vw), 4.5rem)',
+	},
+	displaySubtitle: {
+		fontWeight: 400,
+		opacity: 0.85,
+		fontVariantNumeric: 'tabular-nums',
+		fontSize: 'clamp(2rem, calc(-1.71rem + 3.92vw), 3rem)',
+	},
+	clock: {
+		fontWeight: 300,
+		opacity: 0.7,
+		fontVariantNumeric: 'tabular-nums',
+		letterSpacing: '0.02em',
+		fontSize: 'clamp(1.5rem, calc(-1.28rem + 2.94vw), 2.25rem)',
+	},
+	inputHeading: {
+		fontSize: '1.5rem',
+	},
+};

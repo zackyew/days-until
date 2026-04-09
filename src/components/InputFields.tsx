@@ -3,6 +3,7 @@ import TextField from '@mui/material/TextField';
 import { Box, Button, Typography } from '@mui/material';
 import dayjs, { Dayjs } from 'dayjs';
 import AvTimerIcon from '@mui/icons-material/AvTimer';
+import { TYPOGRAPHY } from '../themes';
 import {
 	DateTimePicker,
 	DateTimeValidationError,
@@ -37,7 +38,7 @@ function InputFields({ onCountdownToCalendar }: Props) {
 	return (
 		<Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' gap={4}>
 			<AvTimerIcon sx={{ fontSize: 75 }} />
-			<Typography variant='h4' sx={{ fontSize: '1.5rem' }}>
+			<Typography variant='h4' sx={TYPOGRAPHY.inputHeading}>
 				What are you looking forward to next?
 			</Typography>
 			<TextField

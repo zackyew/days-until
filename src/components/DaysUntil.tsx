@@ -2,6 +2,7 @@ import { Box, Button, Typography } from '@mui/material';
 import confetti from 'canvas-confetti';
 import dayjs from 'dayjs';
 import { useCallback, useEffect, useState } from 'react';
+import { TYPOGRAPHY } from '../themes';
 import { formatTimeUntil } from '../utils/time';
 
 const DaysUntil = () => {
@@ -51,19 +52,19 @@ const DaysUntil = () => {
 		<Box display='flex' justifyContent='center' alignItems='center' flexDirection='column' gap={2} sx={{ textAlign: 'center', wordBreak: 'break-word' }}>
 			{isCelebration ? (
 				<>
-					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontSize: 'clamp(2rem, calc(-1.71rem + 3.92vw), 3rem)' }}>
+					<Typography variant='h2' sx={TYPOGRAPHY.displaySubtitle}>
 						Today's the day!
 					</Typography>
-					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em', fontSize: 'clamp(3rem, calc(-2.56rem + 5.88vw), 4.5rem)' }}>
+					<Typography variant='h1' sx={TYPOGRAPHY.displayTitle}>
 						{eventName}
 					</Typography>
 				</>
 			) : (
 				<>
-					<Typography variant='h1' fontWeight={400} sx={{ opacity: 0.85, letterSpacing: '0.01em', fontSize: 'clamp(3rem, calc(-2.56rem + 5.88vw), 4.5rem)' }}>
+					<Typography variant='h1' sx={TYPOGRAPHY.displayTitle}>
 						{eventName}
 					</Typography>
-					<Typography variant='h2' fontWeight={400} sx={{ opacity: 0.85, fontVariantNumeric: 'tabular-nums', fontSize: 'clamp(2rem, calc(-1.71rem + 3.92vw), 3rem)' }}>
+					<Typography variant='h2' sx={TYPOGRAPHY.displaySubtitle}>
 						{timeLeft}
 					</Typography>
 				</>
