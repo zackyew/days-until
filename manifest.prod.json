@@ -1,5 +1,5 @@
 {
-	"version": "1.1.0",
+	"version": "1.1.1",
 	"manifest_version": 3,
 	"name": "Days Until",
 	"description": "This is a chrome extension that displays a countdown to a certain date on a new tab",

@@ -1,17 +1,10 @@
-import MenuIcon from '@mui/icons-material/Menu';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {
 	Box,
 	Button,
-	Checkbox,
 	CircularProgress,
-	FormControlLabel,
 	IconButton,
 	Link,
-	MenuItem,
-	Popover,
-	Select,
-	SelectChangeEvent,
 	Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -19,22 +12,15 @@ import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
 	CalendarEventItem,
-	CalendarListItem,
 	disconnectCalendar,
-	fetchCalendarList,
 	fetchNextEvent,
 	getAuthToken,
-	getCachedCalendarList,
 	getCachedEvent,
-	getHiddenCalendarIds,
-	getSelectedCalendarId,
-	setCachedCalendarList,
 	setCachedEvent,
-	setHiddenCalendarIds,
-	setSelectedCalendarId,
 } from '../services/googleCalendar';
 import { TYPOGRAPHY } from '../themes';
 import { formatTimeUntil } from '../utils/time';
+import CalendarPicker from './CalendarPicker';
 
 type Status = 'disconnected' | 'loading' | 'connected' | 'error';
 
@@ -136,6 +122,17 @@ const ErrorRow = styled(Box)({
 	gap: 8,
 });
 
+const FadeInBox = styled(Box)({
+	display: 'flex',
+	flexDirection: 'column',
+	alignItems: 'center',
+	'@keyframes fadeIn': {
+		from: { opacity: 0 },
+		to: { opacity: 1 },
+	},
+	animation: 'fadeIn 0.5s ease-in',
+});
+
 function toGenericError(err: unknown): string {
 	const msg = err instanceof Error ? err.message : String(err);
 	if (/auth|token|identity|OAuth/i.test(msg)) return 'Authentication error';
@@ -175,18 +172,13 @@ interface Props {
 
 const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 	const [status, setStatus] = useState<Status>('loading');
+	const [isConnected, setIsConnected] = useState(false);
 	const [event, setEvent] = useState<CalendarEventItem | null>(null);
 	const [noEvents, setNoEvents] = useState(false);
 	const [errorDetail, setErrorDetail] = useState<string>('');
-	const [calendarList, setCalendarList] = useState<CalendarListItem[]>([]);
-	const [selectedCalendarId, setSelectedCalendarIdState] =
-		useState<string>('primary');
-	const [hiddenCalendarIds, setHiddenCalendarIdsState] = useState<string[]>([]);
-	const [manageAnchorEl, setManageAnchorEl] = useState<HTMLElement | null>(
-		null,
-	);
+	const [activeCalendarId, setActiveCalendarId] = useState<string>('primary');
 
-	const loadEvent = useCallback(async (calendarId = 'primary') => {
+	const loadEvent = useCallback(async (calendarId: string) => {
 		try {
 			const next = await fetchNextEvent(calendarId);
 			setEvent(next);
@@ -200,127 +192,67 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 		}
 	}, []);
 
-	const loadCalendarList = useCallback(async () => {
-		try {
-			const list = await fetchCalendarList();
-			setCalendarList(list);
-			await setCachedCalendarList(list);
-			return list;
-		} catch {
-			// Non-fatal — just don't show the dropdown
-			return [];
-		}
-	}, []);
-
 	useEffect(() => {
 		chrome.storage.sync.get('calendarConnected', async (result) => {
 			if (!result.calendarConnected) {
 				setStatus('disconnected');
 				return;
 			}
-			const savedCalendarId = await getSelectedCalendarId();
-			const [cachedEvent, cachedList, hidden] = await Promise.all([
-				getCachedEvent(),
-				getCachedCalendarList(),
-				getHiddenCalendarIds(),
-			]);
-			if (cachedEvent) {
-				setEvent(cachedEvent);
+			setIsConnected(true);
+			const cached = await getCachedEvent();
+			if (cached) {
+				setEvent(cached);
 				setNoEvents(false);
 				setStatus('connected');
 			}
-			if (cachedList.length > 0) {
-				setCalendarList(cachedList);
-				const resolvedFromCache =
-					savedCalendarId === 'primary'
-						? (cachedList.find((c) => c.primary)?.id ?? savedCalendarId)
-						: savedCalendarId;
-				setSelectedCalendarIdState(resolvedFromCache);
-			}
-			setHiddenCalendarIdsState(hidden);
-			const list = await loadCalendarList();
-			const resolvedId =
-				savedCalendarId === 'primary'
-					? (list.find((c) => c.primary)?.id ?? savedCalendarId)
-					: savedCalendarId;
-			setSelectedCalendarIdState(resolvedId);
-			loadEvent(resolvedId);
 		});
-	}, [loadEvent, loadCalendarList]);
+	}, []);
 
 	useEffect(() => {
 		if (status !== 'connected') return;
-		const interval = setInterval(
-			() => loadEvent(selectedCalendarId),
-			REFRESH_INTERVAL_MS,
-		);
+		const interval = setInterval(() => loadEvent(activeCalendarId), REFRESH_INTERVAL_MS);
 		return () => clearInterval(interval);
-	}, [status, loadEvent, selectedCalendarId]);
+	}, [status, loadEvent, activeCalendarId]);
+
+	const handleCalendarReady = useCallback(
+		(calendarId: string) => {
+			setActiveCalendarId(calendarId);
+			loadEvent(calendarId);
+		},
+		[loadEvent],
+	);
+
+	const handleCalendarSelectionChange = useCallback(
+		async (calendarId: string) => {
+			setActiveCalendarId(calendarId);
+			setStatus('loading');
+			await setCachedEvent(null);
+			loadEvent(calendarId);
+		},
+		[loadEvent],
+	);
 
 	const handleConnect = useCallback(async () => {
 		setStatus('loading');
 		try {
 			await getAuthToken(true);
 			await chrome.storage.sync.set({ calendarConnected: true });
-			const list = await loadCalendarList();
-			const primaryId = list.find((c) => c.primary)?.id ?? 'primary';
-			setSelectedCalendarIdState(primaryId);
-			await loadEvent(primaryId);
+			setIsConnected(true);
 		} catch (err) {
 			console.error('[CalendarEvent] handleConnect failed:', err);
 			setErrorDetail(toGenericError(err));
 			setStatus('error');
 		}
-	}, [loadEvent, loadCalendarList]);
-
-	const handleCalendarChange = useCallback(
-		async (e: SelectChangeEvent<string>) => {
-			const newId = e.target.value;
-			setSelectedCalendarIdState(newId);
-			await setSelectedCalendarId(newId);
-			await setCachedEvent(null);
-			setEvent(null);
-			setNoEvents(false);
-			loadEvent(newId);
-		},
-		[loadEvent],
-	);
-
-	const handleToggleHidden = useCallback(
-		async (calId: string, currentlyHidden: boolean) => {
-			const next = currentlyHidden
-				? hiddenCalendarIds.filter((id) => id !== calId)
-				: [...hiddenCalendarIds, calId];
-			setHiddenCalendarIdsState(next);
-			await setHiddenCalendarIds(next);
-			// If we just hid the currently selected calendar, switch to first visible
-			if (!currentlyHidden && calId === selectedCalendarId) {
-				const firstVisible = calendarList.find(
-					(c) => c.id !== calId && !next.includes(c.id),
-				);
-				if (firstVisible) {
-					setSelectedCalendarIdState(firstVisible.id);
-					await setSelectedCalendarId(firstVisible.id);
-					await setCachedEvent(null);
-					setEvent(null);
-					setNoEvents(false);
-					loadEvent(firstVisible.id);
-				}
-			}
-		},
-		[hiddenCalendarIds, selectedCalendarId, calendarList, loadEvent],
-	);
+	}, []);
 
 	const handleDisconnect = useCallback(async () => {
 		await disconnectCalendar();
+		setIsConnected(false);
 		setEvent(null);
 		setNoEvents(false);
+		setActiveCalendarId('primary');
 		setStatus('disconnected');
 	}, []);
-
-	const visibleCalendars = calendarList.filter(
-		(c) => !hiddenCalendarIds.includes(c.id),
-	);
 
 	const eventStart = event?.start.dateTime ?? event?.start.date;
 	const callUrl =
@@ -329,151 +261,99 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 
 	return (
 		<EventBox isFullscreen={isFullscreen}>
-			{status === 'loading' && <CircularProgress size={16} />}
-
 			{status === 'disconnected' && (
 				<ConnectButton variant='text' size='small' onClick={handleConnect}>
 					Connect Google Calendar
 				</ConnectButton>
 			)}
 
-			{status === 'connected' && calendarList.length > 1 && !isFullscreen && (
-				<Box
-					sx={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: 0.5,
-						marginBottom: '5px',
-					}}
-				>
-					<Select
-						value={selectedCalendarId}
-						onChange={handleCalendarChange}
-						variant='outlined'
-						sx={{ fontSize: '0.75rem', opacity: 0.75 }}
-						size='small'
-					>
-						{visibleCalendars.map((cal) => (
-							<MenuItem
-								key={cal.id}
-								value={cal.id}
-								sx={{ fontSize: '0.75rem' }}
-							>
-								{cal.summaryOverride ? cal.summaryOverride : cal.summary}
-							</MenuItem>
-						))}
-					</Select>
-					<IconButton
-						size='small'
-						onClick={(e) => setManageAnchorEl(e.currentTarget)}
-						sx={{ opacity: 0.6 }}
-					>
-						<MenuIcon fontSize='small' />
-					</IconButton>
-					<Popover
-						open={Boolean(manageAnchorEl)}
-						anchorEl={manageAnchorEl}
-						onClose={() => setManageAnchorEl(null)}
-						anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-					>
-						<Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column' }}>
-							{calendarList.map((cal) => {
-								const isHidden = hiddenCalendarIds.includes(cal.id);
-								return (
-									<FormControlLabel
-										key={cal.id}
-										label={
-											<Typography variant='body2'>
-												{cal.summaryOverride ?? cal.summary}
-											</Typography>
-										}
-										control={
-											<Checkbox
-												checked={!isHidden}
-												size='small'
-												onChange={() => handleToggleHidden(cal.id, isHidden)}
-											/>
-										}
-									/>
-								);
-							})}
-						</Box>
-					</Popover>
-				</Box>
+			{isConnected && !isFullscreen && (
+				<CalendarPicker
+					onReady={handleCalendarReady}
+					onSelectionChange={handleCalendarSelectionChange}
+				/>
 			)}
 
-			{status === 'connected' && noEvents && (
-				<>
-					<Typography variant='body1'>No upcoming events</Typography>
-					{!isFullscreen && (
-						<DisconnectLink
-							component='button'
-							variant='body2'
-							onClick={handleDisconnect}
-						>
-							Disconnect calendar
-						</DisconnectLink>
+			{status === 'loading' && <CircularProgress size={16} />}
+
+			{status === 'connected' && (
+				<FadeInBox key={activeCalendarId} sx={{ gap: isFullscreen ? 2 : 0.5 }}>
+
+					{noEvents && (
+						<>
+							<Typography variant='body1'>No upcoming events</Typography>
+							{!isFullscreen && (
+								<DisconnectLink
+									component='button'
+									variant='body2'
+									onClick={handleDisconnect}
+								>
+									Disconnect calendar
+								</DisconnectLink>
+							)}
+						</>
 					)}
-				</>
-			)}
 
-			{status === 'connected' && event && eventStart && (
-				<>
-					<EventTitleRow>
-						<EventTitle
-							variant={isFullscreen ? 'h1' : 'h5'}
-							isFullscreen={isFullscreen}
-						>
-							{event.summary}
-						</EventTitle>
-						{callUrl && (
-							<CallIconButton
-								component='a'
-								href={callUrl}
-								target='_blank'
-								rel='noopener noreferrer'
+					{event && eventStart && (
+						<>
+							<EventTitleRow>
+								<EventTitle
+									variant={isFullscreen ? 'h1' : 'h5'}
+									isFullscreen={isFullscreen}
+								>
+									{event.summary}
+								</EventTitle>
+								{callUrl && (
+									<CallIconButton
+										component='a'
+										href={callUrl}
+										target='_blank'
+										rel='noopener noreferrer'
+										isFullscreen={isFullscreen}
+									>
+										<CallIcon isFullscreen={isFullscreen} />
+									</CallIconButton>
+								)}
+							</EventTitleRow>
+
+							{isFullscreen ? (
+								<FullscreenSubtitle variant='h2'>
+									{formatTimeUntil(eventStart)}
+								</FullscreenSubtitle>
+							) : (
+								<NonFullscreenTime variant='body1'>
+									{formatTimeUntil(eventStart)}
+								</NonFullscreenTime>
+							)}
+
+							<EventDateTime
+								variant={isFullscreen ? 'body1' : 'h6'}
 								isFullscreen={isFullscreen}
 							>
-								<CallIcon isFullscreen={isFullscreen} />
-							</CallIconButton>
-						)}
-					</EventTitleRow>
+								{formatEventDateTime(event.start, event.end)}
+							</EventDateTime>
 
-					{isFullscreen ? (
-						<FullscreenSubtitle variant='h2'>
-							{formatTimeUntil(eventStart)}
-						</FullscreenSubtitle>
-					) : (
-						<NonFullscreenTime variant='body1'>
-							{formatTimeUntil(eventStart)}
-						</NonFullscreenTime>
+							{event.location && !isUrl(event.location) && (
+								<EventLocation variant='body1'>{event.location}</EventLocation>
+							)}
+
+							{isFullscreen ? (
+								<FullscreenClearButton variant='outlined' onClick={onClear}>
+									Clear
+								</FullscreenClearButton>
+							) : (
+								<DisconnectLink
+									component='button'
+									variant='body2'
+									onClick={handleDisconnect}
+								>
+									Disconnect calendar
+								</DisconnectLink>
+							)}
+						</>
 					)}
 
-					<EventDateTime
-						variant={isFullscreen ? 'body1' : 'h6'}
-						isFullscreen={isFullscreen}
-					>
-						{formatEventDateTime(event.start, event.end)}
-					</EventDateTime>
-
-					{event.location && !isUrl(event.location) && (
-						<EventLocation variant='body1'>{event.location}</EventLocation>
-					)}
-
-					{isFullscreen ? (
-						<FullscreenClearButton variant='outlined' onClick={onClear}>
-							Clear
-						</FullscreenClearButton>
-					) : (
-						<DisconnectLink
-							component='button'
-							variant='body2'
-							onClick={handleDisconnect}
-						>
-							Disconnect calendar
-						</DisconnectLink>
-					)}
-				</>
+				</FadeInBox>
 			)}
 
 			{status === 'error' && (
@@ -483,7 +363,7 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 						<RetryLink
 							component='button'
 							variant='body2'
-							onClick={() => loadEvent(selectedCalendarId)}
+							onClick={() => loadEvent(activeCalendarId)}
 						>
 							Retry
 						</RetryLink>
