@@ -113,6 +113,20 @@ export async function setHiddenCalendarIds(ids: string[]): Promise<void> {
 	await chrome.storage.sync.set({ [HIDDEN_CALENDARS_KEY]: ids });
 }
 
+const CACHED_CALENDAR_LIST_KEY = 'cachedCalendarList';
+
+export async function getCachedCalendarList(): Promise<CalendarListItem[]> {
+	return new Promise((resolve) => {
+		chrome.storage.local.get(CACHED_CALENDAR_LIST_KEY, (result) => {
+			resolve((result[CACHED_CALENDAR_LIST_KEY] as CalendarListItem[]) ?? []);
+		});
+	});
+}
+
+export async function setCachedCalendarList(list: CalendarListItem[]): Promise<void> {
+	await chrome.storage.local.set({ [CACHED_CALENDAR_LIST_KEY]: list });
+}
+
 const CACHED_EVENT_KEY = 'cachedCalendarEvent';
 
 export async function getCachedEvent(): Promise<CalendarEventItem | null> {
@@ -148,5 +162,5 @@ export async function disconnectCalendar(): Promise<void> {
 		SELECTED_CALENDAR_KEY,
 		HIDDEN_CALENDARS_KEY,
 	]);
-	await chrome.storage.local.remove(CACHED_EVENT_KEY);
+	await chrome.storage.local.remove([CACHED_EVENT_KEY, CACHED_CALENDAR_LIST_KEY]);
 }

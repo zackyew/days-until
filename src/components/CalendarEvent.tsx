@@ -24,9 +24,11 @@ import {
 	fetchCalendarList,
 	fetchNextEvent,
 	getAuthToken,
+	getCachedCalendarList,
 	getCachedEvent,
 	getHiddenCalendarIds,
 	getSelectedCalendarId,
+	setCachedCalendarList,
 	setCachedEvent,
 	setHiddenCalendarIds,
 	setSelectedCalendarId,
@@ -202,6 +204,7 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 		try {
 			const list = await fetchCalendarList();
 			setCalendarList(list);
+			await setCachedCalendarList(list);
 			return list;
 		} catch {
 			// Non-fatal — just don't show the dropdown
@@ -216,17 +219,26 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 				return;
 			}
 			const savedCalendarId = await getSelectedCalendarId();
-			const cached = await getCachedEvent();
-			if (cached) {
-				setEvent(cached);
+			const [cachedEvent, cachedList, hidden] = await Promise.all([
+				getCachedEvent(),
+				getCachedCalendarList(),
+				getHiddenCalendarIds(),
+			]);
+			if (cachedEvent) {
+				setEvent(cachedEvent);
 				setNoEvents(false);
 				setStatus('connected');
 			}
-			const [list, hidden] = await Promise.all([
-				loadCalendarList(),
-				getHiddenCalendarIds(),
-			]);
+			if (cachedList.length > 0) {
+				setCalendarList(cachedList);
+				const resolvedFromCache =
+					savedCalendarId === 'primary'
+						? (cachedList.find((c) => c.primary)?.id ?? savedCalendarId)
+						: savedCalendarId;
+				setSelectedCalendarIdState(resolvedFromCache);
+			}
 			setHiddenCalendarIdsState(hidden);
+			const list = await loadCalendarList();
 			const resolvedId =
 				savedCalendarId === 'primary'
 					? (list.find((c) => c.primary)?.id ?? savedCalendarId)
@@ -326,12 +338,19 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 			)}
 
 			{status === 'connected' && calendarList.length > 1 && !isFullscreen && (
-				<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+				<Box
+					sx={{
+						display: 'flex',
+						alignItems: 'center',
+						gap: 0.5,
+						marginBottom: '5px',
+					}}
+				>
 					<Select
 						value={selectedCalendarId}
 						onChange={handleCalendarChange}
 						variant='outlined'
-						sx={{ fontSize: '0.75rem', opacity: 0.75, marginBottom: '5px' }}
+						sx={{ fontSize: '0.75rem', opacity: 0.75 }}
 						size='small'
 					>
 						{visibleCalendars.map((cal) => (
