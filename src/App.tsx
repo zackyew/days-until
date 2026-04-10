@@ -64,6 +64,26 @@ function App() {
 	const [calendarCountdown, setCalendarCountdown] = useState<boolean>(
 		() => window.localStorage.getItem('calendar-countdown') === 'true'
 	);
+	const [calendarConnected, setCalendarConnected] = useState<boolean>(false);
+
+	useEffect(() => {
+		chrome.storage.sync.get('calendarConnected', (result) => {
+			setCalendarConnected(!!result.calendarConnected);
+		});
+
+		const listener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+			if ('calendarConnected' in changes) {
+				const connected = !!changes.calendarConnected.newValue;
+				setCalendarConnected(connected);
+				if (!connected) {
+					window.localStorage.removeItem('calendar-countdown');
+					setCalendarCountdown(false);
+				}
+			}
+		};
+		chrome.storage.sync.onChanged.addListener(listener);
+		return () => chrome.storage.sync.onChanged.removeListener(listener);
+	}, []);
 
 	const muiTheme = useMemo(
 		() => createTheme({
@@ -107,7 +127,7 @@ function App() {
 						<CalendarEvent isFullscreen onClear={handleCalendarClear} />
 					) : (
 						<>
-							{dateExists ? <DaysUntil /> : <InputFields onCountdownToCalendar={handleCalendarCountdown} />}
+							{dateExists ? <DaysUntil /> : <InputFields onCountdownToCalendar={calendarConnected ? handleCalendarCountdown : undefined} />}
 							<StyledDivider flexItem />
 							<CalendarEvent />
 						</>

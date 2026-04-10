@@ -1,4 +1,3 @@
-import React from 'react';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {
 	Box,
@@ -10,7 +9,7 @@ import {
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import dayjs from 'dayjs';
-import { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
 	CalendarEventItem,
 	disconnectCalendar,
@@ -48,6 +47,7 @@ const EventTitleRow = styled(Box)({
 	display: 'flex',
 	alignItems: 'center',
 	gap: 4,
+	textAlign: 'center',
 });
 
 const EventTitle = styled(
