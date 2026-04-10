@@ -1,10 +1,17 @@
+import MenuIcon from '@mui/icons-material/Menu';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {
 	Box,
 	Button,
+	Checkbox,
 	CircularProgress,
+	FormControlLabel,
 	IconButton,
 	Link,
+	MenuItem,
+	Popover,
+	Select,
+	SelectChangeEvent,
 	Typography,
 } from '@mui/material';
 import { styled } from '@mui/material/styles';
@@ -12,11 +19,17 @@ import dayjs from 'dayjs';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
 	CalendarEventItem,
+	CalendarListItem,
 	disconnectCalendar,
+	fetchCalendarList,
 	fetchNextEvent,
 	getAuthToken,
 	getCachedEvent,
+	getHiddenCalendarIds,
+	getSelectedCalendarId,
 	setCachedEvent,
+	setHiddenCalendarIds,
+	setSelectedCalendarId,
 } from '../services/googleCalendar';
 import { TYPOGRAPHY } from '../themes';
 import { formatTimeUntil } from '../utils/time';
@@ -163,10 +176,17 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 	const [event, setEvent] = useState<CalendarEventItem | null>(null);
 	const [noEvents, setNoEvents] = useState(false);
 	const [errorDetail, setErrorDetail] = useState<string>('');
+	const [calendarList, setCalendarList] = useState<CalendarListItem[]>([]);
+	const [selectedCalendarId, setSelectedCalendarIdState] =
+		useState<string>('primary');
+	const [hiddenCalendarIds, setHiddenCalendarIdsState] = useState<string[]>([]);
+	const [manageAnchorEl, setManageAnchorEl] = useState<HTMLElement | null>(
+		null,
+	);
 
-	const loadEvent = useCallback(async () => {
+	const loadEvent = useCallback(async (calendarId = 'primary') => {
 		try {
-			const next = await fetchNextEvent();
+			const next = await fetchNextEvent(calendarId);
 			setEvent(next);
 			setNoEvents(next === null);
 			setStatus('connected');
@@ -178,40 +198,106 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 		}
 	}, []);
 
+	const loadCalendarList = useCallback(async () => {
+		try {
+			const list = await fetchCalendarList();
+			setCalendarList(list);
+			return list;
+		} catch {
+			// Non-fatal — just don't show the dropdown
+			return [];
+		}
+	}, []);
+
 	useEffect(() => {
 		chrome.storage.sync.get('calendarConnected', async (result) => {
 			if (!result.calendarConnected) {
 				setStatus('disconnected');
 				return;
 			}
+			const savedCalendarId = await getSelectedCalendarId();
 			const cached = await getCachedEvent();
 			if (cached) {
 				setEvent(cached);
 				setNoEvents(false);
 				setStatus('connected');
 			}
-			loadEvent();
+			const [list, hidden] = await Promise.all([
+				loadCalendarList(),
+				getHiddenCalendarIds(),
+			]);
+			setHiddenCalendarIdsState(hidden);
+			const resolvedId =
+				savedCalendarId === 'primary'
+					? (list.find((c) => c.primary)?.id ?? savedCalendarId)
+					: savedCalendarId;
+			setSelectedCalendarIdState(resolvedId);
+			loadEvent(resolvedId);
 		});
-	}, [loadEvent]);
+	}, [loadEvent, loadCalendarList]);
 
 	useEffect(() => {
 		if (status !== 'connected') return;
-		const interval = setInterval(loadEvent, REFRESH_INTERVAL_MS);
+		const interval = setInterval(
+			() => loadEvent(selectedCalendarId),
+			REFRESH_INTERVAL_MS,
+		);
 		return () => clearInterval(interval);
-	}, [status, loadEvent]);
+	}, [status, loadEvent, selectedCalendarId]);
 
 	const handleConnect = useCallback(async () => {
 		setStatus('loading');
 		try {
 			await getAuthToken(true);
 			await chrome.storage.sync.set({ calendarConnected: true });
-			await loadEvent();
+			const list = await loadCalendarList();
+			const primaryId = list.find((c) => c.primary)?.id ?? 'primary';
+			setSelectedCalendarIdState(primaryId);
+			await loadEvent(primaryId);
 		} catch (err) {
 			console.error('[CalendarEvent] handleConnect failed:', err);
 			setErrorDetail(toGenericError(err));
 			setStatus('error');
 		}
-	}, [loadEvent]);
+	}, [loadEvent, loadCalendarList]);
+
+	const handleCalendarChange = useCallback(
+		async (e: SelectChangeEvent<string>) => {
+			const newId = e.target.value;
+			setSelectedCalendarIdState(newId);
+			await setSelectedCalendarId(newId);
+			await setCachedEvent(null);
+			setEvent(null);
+			setNoEvents(false);
+			loadEvent(newId);
+		},
+		[loadEvent],
+	);
+
+	const handleToggleHidden = useCallback(
+		async (calId: string, currentlyHidden: boolean) => {
+			const next = currentlyHidden
+				? hiddenCalendarIds.filter((id) => id !== calId)
+				: [...hiddenCalendarIds, calId];
+			setHiddenCalendarIdsState(next);
+			await setHiddenCalendarIds(next);
+			// If we just hid the currently selected calendar, switch to first visible
+			if (!currentlyHidden && calId === selectedCalendarId) {
+				const firstVisible = calendarList.find(
+					(c) => c.id !== calId && !next.includes(c.id),
+				);
+				if (firstVisible) {
+					setSelectedCalendarIdState(firstVisible.id);
+					await setSelectedCalendarId(firstVisible.id);
+					await setCachedEvent(null);
+					setEvent(null);
+					setNoEvents(false);
+					loadEvent(firstVisible.id);
+				}
+			}
+		},
+		[hiddenCalendarIds, selectedCalendarId, calendarList, loadEvent],
+	);
 
 	const handleDisconnect = useCallback(async () => {
 		await disconnectCalendar();
@@ -219,6 +305,10 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 		setNoEvents(false);
 		setStatus('disconnected');
 	}, []);
+
+	const visibleCalendars = calendarList.filter(
+		(c) => !hiddenCalendarIds.includes(c.id),
+	);
 
 	const eventStart = event?.start.dateTime ?? event?.start.date;
 	const callUrl =
@@ -235,8 +325,77 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 				</ConnectButton>
 			)}
 
+			{status === 'connected' && calendarList.length > 1 && !isFullscreen && (
+				<Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+					<Select
+						value={selectedCalendarId}
+						onChange={handleCalendarChange}
+						variant='outlined'
+						sx={{ fontSize: '0.75rem', opacity: 0.75 }}
+						size='small'
+					>
+						{visibleCalendars.map((cal) => (
+							<MenuItem
+								key={cal.id}
+								value={cal.id}
+								sx={{ fontSize: '0.75rem' }}
+							>
+								{cal.summaryOverride ? cal.summaryOverride : cal.summary}
+							</MenuItem>
+						))}
+					</Select>
+					<IconButton
+						size='small'
+						onClick={(e) => setManageAnchorEl(e.currentTarget)}
+						sx={{ opacity: 0.6 }}
+					>
+						<MenuIcon fontSize='small' />
+					</IconButton>
+					<Popover
+						open={Boolean(manageAnchorEl)}
+						anchorEl={manageAnchorEl}
+						onClose={() => setManageAnchorEl(null)}
+						anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+					>
+						<Box sx={{ p: 1.5, display: 'flex', flexDirection: 'column' }}>
+							{calendarList.map((cal) => {
+								const isHidden = hiddenCalendarIds.includes(cal.id);
+								return (
+									<FormControlLabel
+										key={cal.id}
+										label={
+											<Typography variant='body2'>
+												{cal.summaryOverride ?? cal.summary}
+											</Typography>
+										}
+										control={
+											<Checkbox
+												checked={!isHidden}
+												size='small'
+												onChange={() => handleToggleHidden(cal.id, isHidden)}
+											/>
+										}
+									/>
+								);
+							})}
+						</Box>
+					</Popover>
+				</Box>
+			)}
+
 			{status === 'connected' && noEvents && (
-				<Typography variant='body1'>No upcoming events</Typography>
+				<>
+					<Typography variant='body1'>No upcoming events</Typography>
+					{!isFullscreen && (
+						<DisconnectLink
+							component='button'
+							variant='body2'
+							onClick={handleDisconnect}
+						>
+							Disconnect calendar
+						</DisconnectLink>
+					)}
+				</>
 			)}
 
 			{status === 'connected' && event && eventStart && (
@@ -302,7 +461,11 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 				<ErrorContainer>
 					<ErrorRow>
 						<Typography variant='body1'>Could not load calendar</Typography>
-						<RetryLink component='button' variant='body2' onClick={loadEvent}>
+						<RetryLink
+							component='button'
+							variant='body2'
+							onClick={() => loadEvent(selectedCalendarId)}
+						>
 							Retry
 						</RetryLink>
 					</ErrorRow>

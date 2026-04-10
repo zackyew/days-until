@@ -2,6 +2,8 @@ const path = require('path');
 const HTMLPlugin = require('html-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
+const isProd = process.env.NODE_ENV === 'production';
+
 module.exports = {
 	entry: {
 		index: './src/index.tsx',
@@ -33,7 +35,7 @@ module.exports = {
 	},
 	plugins: [
 		new CopyPlugin({
-			patterns: [{ from: 'manifest.json', to: '../manifest.json' }],
+			patterns: [{ from: isProd ? 'manifest.prod.json' : 'manifest.dev.json', to: '../manifest.json' }],
 		}),
 		...getHtmlPlugins(['index']),
 	],
