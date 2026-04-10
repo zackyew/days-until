@@ -15,7 +15,7 @@
     "https://oauth2.googleapis.com/revoke"
   ],
 	"oauth2": {
-		"client_id": "457255059655-o5hp2psnlcjgv3qhrnetuc0j6itomabc.apps.googleusercontent.com",
+		"client_id": "457255059655-gppp0de1nhcennnf0pjo05br39k2mfac.apps.googleusercontent.com",
 		"scopes": ["https://www.googleapis.com/auth/calendar.readonly"]
 	}
 }
