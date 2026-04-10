@@ -331,7 +331,7 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 						value={selectedCalendarId}
 						onChange={handleCalendarChange}
 						variant='outlined'
-						sx={{ fontSize: '0.75rem', opacity: 0.75 }}
+						sx={{ fontSize: '0.75rem', opacity: 0.75, marginBottom: '5px' }}
 						size='small'
 					>
 						{visibleCalendars.map((cal) => (
