@@ -31,8 +31,10 @@ const DaysUntil = () => {
 	const [isCelebration, setIsCelebration] = useState(false);
 
 	useEffect(() => {
-		setEventName(window.localStorage.getItem('event-name'));
-		setTargetDate(window.localStorage.getItem('target-date'));
+		chrome.storage.sync.get(['event-name', 'target-date'], (result) => {
+			setEventName((result['event-name'] as string) ?? null);
+			setTargetDate((result['target-date'] as string) ?? null);
+		});
 	}, []);
 
 	const calculateTimeLeft = useCallback(() => {
@@ -61,10 +63,8 @@ const DaysUntil = () => {
 	}, [isCelebration, targetDate]);
 
 	const handleClear = useCallback(() => {
-		window.localStorage.removeItem('event-name');
-		window.localStorage.removeItem('target-date');
+		chrome.storage.sync.remove(['event-name', 'target-date']);
 		window.localStorage.removeItem('confetti-fired-for');
-		window.dispatchEvent(new Event('days-until'));
 	}, []);
 
 	return (

@@ -1,9 +1,7 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React from 'react';
 import { Box, Tooltip } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { THEMES, ThemeName } from '../themes';
-
-const DEFAULT_THEME: ThemeName = 'midnight';
 
 const SelectorBox = styled(Box)({
 	position: 'absolute',
@@ -42,25 +40,12 @@ const Swatch = styled(Box, {
 	},
 }));
 
-const ThemeSelector = () => {
-	const [selected, setSelected] = useState<ThemeName>(
-		() => (localStorage.getItem('theme') as ThemeName) ?? DEFAULT_THEME
-	);
+interface Props {
+	selected: ThemeName;
+	onSelect: (name: ThemeName) => void;
+}
 
-	useEffect(() => {
-		const handler = () => {
-			setSelected((localStorage.getItem('theme') as ThemeName) ?? DEFAULT_THEME);
-		};
-		window.addEventListener('days-until', handler);
-		return () => window.removeEventListener('days-until', handler);
-	}, []);
-
-	const handleSelect = useCallback((name: ThemeName) => {
-		localStorage.setItem('theme', name);
-		setSelected(name);
-		window.dispatchEvent(new Event('days-until'));
-	}, []);
-
+const ThemeSelector = ({ selected, onSelect }: Props) => {
 	return (
 		<SelectorBox>
 			{(Object.entries(THEMES) as [ThemeName, typeof THEMES[ThemeName]][]).map(
@@ -69,7 +54,7 @@ const ThemeSelector = () => {
 						<Swatch
 							swatchColor={theme.gradient}
 							isSelected={selected === name}
-							onClick={() => handleSelect(name)}
+							onClick={() => onSelect(name)}
 						/>
 					</Tooltip>
 				)

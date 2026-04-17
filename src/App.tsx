@@ -55,29 +55,56 @@ const GlassPanel = styled(Box, {
 const StyledDivider = styled(Divider)({ opacity: 0.3 });
 
 function App() {
-	const [dateExists, setDateExists] = useState<boolean>(
-		window.localStorage.getItem('target-date') !== null
-	);
-	const [themeName, setThemeName] = useState<ThemeName>(
-		() => (window.localStorage.getItem('theme') as ThemeName) ?? 'midnight'
-	);
-	const [calendarCountdown, setCalendarCountdown] = useState<boolean>(
-		() => window.localStorage.getItem('calendar-countdown') === 'true'
-	);
+	const [dateExists, setDateExists] = useState<boolean>(false);
+	const [themeName, setThemeName] = useState<ThemeName>('midnight');
+	const [calendarCountdown, setCalendarCountdown] = useState<boolean>(false);
 	const [calendarConnected, setCalendarConnected] = useState<boolean>(false);
 
 	useEffect(() => {
-		chrome.storage.sync.get('calendarConnected', (result) => {
-			setCalendarConnected(!!result.calendarConnected);
-		});
+		const MIGRATE_KEYS = ['target-date', 'event-name', 'theme', 'calendar-countdown'] as const;
+
+		chrome.storage.sync.get(
+			[...MIGRATE_KEYS, 'calendarConnected'],
+			(result) => {
+				// One-time migration: copy any localStorage values not yet in sync storage
+				const toMigrate: Record<string, string> = {};
+				for (const key of MIGRATE_KEYS) {
+					if (result[key] === undefined) {
+						const local = window.localStorage.getItem(key);
+						if (local !== null) toMigrate[key] = local;
+					}
+				}
+				if (Object.keys(toMigrate).length > 0) {
+					chrome.storage.sync.set(toMigrate, () => {
+						for (const key of Object.keys(toMigrate)) {
+							window.localStorage.removeItem(key);
+						}
+					});
+				}
+
+				const merged = { ...toMigrate, ...result };
+				setDateExists(!!merged['target-date']);
+				setThemeName((merged['theme'] as ThemeName) ?? 'midnight');
+				setCalendarCountdown(merged['calendar-countdown'] === 'true' || merged['calendar-countdown'] === true);
+				setCalendarConnected(!!result.calendarConnected);
+			}
+		);
 
 		const listener = (changes: { [key: string]: chrome.storage.StorageChange }) => {
+			if ('target-date' in changes) {
+				setDateExists(!!changes['target-date'].newValue);
+			}
+			if ('theme' in changes) {
+				setThemeName((changes['theme'].newValue as ThemeName) ?? 'midnight');
+			}
+			if ('calendar-countdown' in changes) {
+				setCalendarCountdown(!!changes['calendar-countdown'].newValue);
+			}
 			if ('calendarConnected' in changes) {
 				const connected = !!changes.calendarConnected.newValue;
 				setCalendarConnected(connected);
 				if (!connected) {
-					window.localStorage.removeItem('calendar-countdown');
-					setCalendarCountdown(false);
+					chrome.storage.sync.remove('calendar-countdown');
 				}
 			}
 		};
@@ -93,34 +120,23 @@ function App() {
 		[themeName]
 	);
 
-	const handleLocalStorageCheck = useCallback(() => {
-		setDateExists(window.localStorage.getItem('target-date') !== null);
-		setThemeName((window.localStorage.getItem('theme') as ThemeName) ?? 'midnight');
-		setCalendarCountdown(window.localStorage.getItem('calendar-countdown') === 'true');
+	const handleSelectTheme = useCallback((name: ThemeName) => {
+		chrome.storage.sync.set({ theme: name });
 	}, []);
 
-	useEffect(() => {
-		window.addEventListener('days-until', handleLocalStorageCheck);
-		return () => {
-			window.removeEventListener('days-until', handleLocalStorageCheck);
-		};
-	}, [handleLocalStorageCheck]);
-
 	const handleCalendarCountdown = useCallback(() => {
-		window.localStorage.setItem('calendar-countdown', 'true');
-		window.dispatchEvent(new Event('days-until'));
+		chrome.storage.sync.set({ 'calendar-countdown': true });
 	}, []);
 
 	const handleCalendarClear = useCallback(() => {
-		window.localStorage.removeItem('calendar-countdown');
-		window.dispatchEvent(new Event('days-until'));
+		chrome.storage.sync.remove('calendar-countdown');
 	}, []);
 
 	return (
 		<ThemeProvider theme={muiTheme}>
 			<CssBaseline />
 			<PageRoot className={`background_${themeName}`}>
-				<ThemeSelector />
+				<ThemeSelector selected={themeName} onSelect={handleSelectTheme} />
 				<Clock />
 				<GlassPanel cardBg={THEMES[themeName].cardBg}>
 					{calendarCountdown ? (
