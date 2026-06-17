@@ -34,6 +34,15 @@
 	animation: AnimationName 12s ease infinite;
 }
 
+.background_dusk {
+	background: linear-gradient(135deg, #0d0017, #2e1a47, #1a0030);
+	background-size: 600% 600%;
+
+	-webkit-animation: AnimationName 12s ease infinite;
+	-moz-animation: AnimationName 12s ease infinite;
+	animation: AnimationName 12s ease infinite;
+}
+
 @-webkit-keyframes AnimationName {
 	0% {
 		background-position: 15% 0%;

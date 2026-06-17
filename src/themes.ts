@@ -27,6 +27,13 @@ export const THEMES = {
 		mode: 'dark' as const,
 		cardBg: 'rgba(255,255,255,0.09)',
 	},
+	dusk: {
+		gradient: 'linear-gradient(135deg, #0d0017, #2e1a47, #1a0030)',
+		label: 'Dusk',
+		swatch: '#2e1a47',
+		mode: 'dark' as const,
+		cardBg: 'rgba(255,255,255,0.09)',
+	},
 } as const;
 
 export type ThemeName = keyof typeof THEMES;

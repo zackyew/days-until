@@ -55,32 +55,34 @@ function InputFields({ onCountdownToCalendar }: Props) {
 		<InputBox>
 			<TimerIcon />
 			<HeadingText variant='h4'>What are you looking forward to next?</HeadingText>
-			<TextField
-				placeholder='Name'
-				autoComplete='off'
-				value={name}
-				onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-					setName(event.target.value);
-				}}
-			/>
-			<LocalizationProvider dateAdapter={AdapterDayjs}>
-				<DateTimePicker
-					value={date}
-					onChange={(newValue) => {
-						if (newValue !== null) {
-							newValue = newValue.second(0);
-						}
-						setDate(newValue);
-					}}
-					disablePast
-					onError={(newError) => setError(newError)}
-					slotProps={{
-						textField: {
-							helperText: errorMessage,
-						},
+			<Box sx={{ display: 'flex', gap: 2, alignItems: 'flex-start' }}>
+				<TextField
+					placeholder='Name'
+					autoComplete='off'
+					value={name}
+					onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+						setName(event.target.value);
 					}}
 				/>
-			</LocalizationProvider>
+				<LocalizationProvider dateAdapter={AdapterDayjs}>
+					<DateTimePicker
+						value={date}
+						onChange={(newValue) => {
+							if (newValue !== null) {
+								newValue = newValue.second(0);
+							}
+							setDate(newValue);
+						}}
+						disablePast
+						onError={(newError) => setError(newError)}
+						slotProps={{
+							textField: {
+								helperText: errorMessage,
+							},
+						}}
+					/>
+				</LocalizationProvider>
+			</Box>
 			<Button
 				variant='outlined'
 				disabled={error !== null || date === null || name.trim() === ''}

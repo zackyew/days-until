@@ -1,5 +1,9 @@
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import {
+	Accordion,
+	AccordionDetails,
+	AccordionSummary,
 	Box,
 	Button,
 	CircularProgress,
@@ -55,7 +59,9 @@ const EventTitle = styled(
 	Typography,
 	forwardAll,
 )<FullscreenProp>(({ isFullscreen }) =>
-	isFullscreen ? TYPOGRAPHY.displayTitle : { fontWeight: 500 },
+	isFullscreen
+		? { ...TYPOGRAPHY.displayTitle, fontSize: 'clamp(1.5rem, 3vw, 2.5rem)' }
+		: { fontWeight: 500 },
 );
 
 interface CallIconButtonProps extends FullscreenProp {
@@ -78,7 +84,10 @@ const CallIcon = styled(
 	fontSize: isFullscreen ? '2rem' : '1.1rem',
 }));
 
-const FullscreenSubtitle = styled(Typography)(TYPOGRAPHY.displaySubtitle);
+const FullscreenSubtitle = styled(Typography)({
+	...TYPOGRAPHY.displaySubtitle,
+	fontSize: 'clamp(1.25rem, 2.5vw, 2rem)',
+});
 
 const EventDateTime = styled(
 	Typography,
@@ -98,10 +107,35 @@ const ConnectButton = styled(Button)({ opacity: 0.8 });
 const FullscreenClearButton = styled(Button)({ marginTop: 16 });
 
 const DisconnectLink = styled(Link)({
-	marginTop: 4,
 	cursor: 'pointer',
 	opacity: 0.75,
 }) as typeof Link;
+
+const EventAccordion = styled(Accordion)({
+	background: 'transparent',
+	boxShadow: 'none',
+	'&:before': { display: 'none' },
+	'& .MuiAccordionSummary-root': {
+		minHeight: 'unset',
+		padding: '4px 8px',
+	},
+	'& .MuiAccordionSummary-content': {
+		margin: 0,
+		flexDirection: 'column',
+		alignItems: 'center',
+		marginRight: 8,
+	},
+	'& .MuiAccordionSummary-expandIconWrapper': {
+		opacity: 0.5,
+	},
+	'& .MuiAccordionDetails-root': {
+		padding: '4px 0 0',
+		display: 'flex',
+		flexDirection: 'column',
+		alignItems: 'center',
+		gap: 4,
+	},
+});
 
 const RetryLink = styled(Link)({ cursor: 'pointer' }) as typeof Link;
 
@@ -296,59 +330,78 @@ const CalendarEvent = ({ isFullscreen = false, onClear }: Props) => {
 
 					{event && eventStart && (
 						<>
-							<EventTitleRow>
-								<EventTitle
-									variant={isFullscreen ? 'h1' : 'h5'}
-									isFullscreen={isFullscreen}
-								>
-									{event.summary}
-								</EventTitle>
-								{callUrl && (
-									<CallIconButton
-										component='a'
-										href={callUrl}
-										target='_blank'
-										rel='noopener noreferrer'
-										isFullscreen={isFullscreen}
+							{isFullscreen ? (
+								<>
+									<EventTitleRow>
+										<EventTitle variant='h1' isFullscreen>
+											{event.summary}
+										</EventTitle>
+										{callUrl && (
+											<CallIconButton
+												component='a'
+												href={callUrl}
+												target='_blank'
+												rel='noopener noreferrer'
+												isFullscreen
+											>
+												<CallIcon isFullscreen />
+											</CallIconButton>
+										)}
+									</EventTitleRow>
+									<FullscreenSubtitle variant='h2'>
+										{formatTimeUntil(eventStart)}
+									</FullscreenSubtitle>
+									<EventDateTime variant='body1' isFullscreen>
+										{formatEventDateTime(event.start, event.end)}
+									</EventDateTime>
+									{event.location && !isUrl(event.location) && (
+										<EventLocation variant='body1'>{event.location}</EventLocation>
+									)}
+									<FullscreenClearButton variant='outlined' onClick={onClear}>
+										Clear
+									</FullscreenClearButton>
+								</>
+							) : (
+								<>
+									<EventAccordion disableGutters>
+										<AccordionSummary expandIcon={<ExpandMoreIcon />}>
+											<EventTitleRow>
+												<EventTitle variant='h5' isFullscreen={false}>
+													{event.summary}
+												</EventTitle>
+												{callUrl && (
+													<CallIconButton
+														component='a'
+														href={callUrl}
+														target='_blank'
+														rel='noopener noreferrer'
+														isFullscreen={false}
+													>
+														<CallIcon isFullscreen={false} />
+													</CallIconButton>
+												)}
+											</EventTitleRow>
+											<NonFullscreenTime variant='body1'>
+												{formatTimeUntil(eventStart)}
+											</NonFullscreenTime>
+										</AccordionSummary>
+										<AccordionDetails>
+											<EventDateTime variant='h6' isFullscreen={false}>
+												{formatEventDateTime(event.start, event.end)}
+											</EventDateTime>
+											{event.location && !isUrl(event.location) && (
+												<EventLocation variant='body1'>{event.location}</EventLocation>
+											)}
+										</AccordionDetails>
+									</EventAccordion>
+									<DisconnectLink
+										component='button'
+										variant='body2'
+										onClick={handleDisconnect}
 									>
-										<CallIcon isFullscreen={isFullscreen} />
-									</CallIconButton>
-								)}
-							</EventTitleRow>
-
-							{isFullscreen ? (
-								<FullscreenSubtitle variant='h2'>
-									{formatTimeUntil(eventStart)}
-								</FullscreenSubtitle>
-							) : (
-								<NonFullscreenTime variant='body1'>
-									{formatTimeUntil(eventStart)}
-								</NonFullscreenTime>
-							)}
-
-							<EventDateTime
-								variant={isFullscreen ? 'body1' : 'h6'}
-								isFullscreen={isFullscreen}
-							>
-								{formatEventDateTime(event.start, event.end)}
-							</EventDateTime>
-
-							{event.location && !isUrl(event.location) && (
-								<EventLocation variant='body1'>{event.location}</EventLocation>
-							)}
-
-							{isFullscreen ? (
-								<FullscreenClearButton variant='outlined' onClick={onClear}>
-									Clear
-								</FullscreenClearButton>
-							) : (
-								<DisconnectLink
-									component='button'
-									variant='body2'
-									onClick={handleDisconnect}
-								>
-									Disconnect calendar
-								</DisconnectLink>
+										Disconnect calendar
+									</DisconnectLink>
+								</>
 							)}
 						</>
 					)}
